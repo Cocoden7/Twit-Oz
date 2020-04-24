@@ -1,4 +1,5 @@
-functor
+declare
+Y = functor
 import
     QTk at 'x-oz://system/wp/QTk.ozf'
     System
@@ -18,39 +19,22 @@ define
         {Reader.scan {New Reader.textfile init(name:IN_NAME)} 1}
     end
 
-%%% Get first word
-    fun {GetFirstWord Line}
-       case Line of H|T then
-	  if H == 32 then
-	     nil
-	  else
-	     H|{GetFirstWord T}
-	  end
-       else
-	  nil
-       end
-    end
-
 %%% Split Line word by word
     fun {GetWords Line}
        {String.tokens Line 32}
     end
 
-%%% Creates initial record from list of words and stock it in R
-    fun {CreateRec WordsList}
+%%% put keys and values of list of word in a Dictrionary
+    fun {CreateRec WordsList Dico}
        case WordsList of H|T then
 	  case T of nil then
-	     nil
+	     Dico
 	  else
-	     H2
-	     T2
-	  in
-	     H2 = {StringToAtom H}
-	     T2 = {StringToAtom T.1}
-	     b(H2:T2)|{CreateRec T}
+	     {Dictionary.put Dico H T.1} % est-ce que dico est bien update en dehors de la fonction ?
+	     {CreateRec T Dico}
 	  end
        [] nil then
-	  nil
+	  Dico
        end
     end
     
@@ -84,18 +68,14 @@ define
     {Browse '... or use the browser window'}
 
 
-    local FirstNumbers WordsList Rec R in
+    local FirstNumbers WordsList Rec R Dico Dico2 in
        FirstNumbers = {GetFirstLine 'tweets/part_1.txt'}
        WordsList = {GetWords FirstNumbers}
-       %{Browse WordsList}
-       case WordsList of H|T then
-	  {Browse H}
-	  {Browse T.1}
-       end
-
-       R = dic(sasa:[1 2 3] 2:coco 3:ffff)
-       Rec = {CreateRec WordsList}
-       {Browse Rec}
-       {Browse R}
+       {Dictionary.new Dico}
+       Dico2 = {CreateRec WordsList Dico}
+       {Browse Dico2}
+       
+    end
     end
 end
+
