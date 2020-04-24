@@ -1,0 +1,15 @@
+functor
+import
+   Dictionary 
+   Browser
+define
+   Browse = Browser.browse
+   %IsEmpty = Dictionary.isEmpty
+   local D in
+      {Browse 3}
+      D = {Dictionary.new}
+      {Browse D}
+   end
+end
+
+   
