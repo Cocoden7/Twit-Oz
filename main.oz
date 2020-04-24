@@ -16,16 +16,16 @@ define
       {Reader.scan {New Reader.textfile init(name:IN_NAME)} 1}
    end
    
-   fun {CreateRec WordsList Dico} % faut pouvoir mettre les lsites en string
+   proc {CreateRec WordsList Dico} % faut pouvoir mettre les lsites en string
       case WordsList of H|T then
 	 case T of nil then
-	    Dico
+	    skip
 	 else
-	    {Dictionary.put Dico H T.1}
+	    {Dictionary.put Dico {StringToAtom H} {StringToAtom T.1}}
 	    {CreateRec T Dico}
 	 end
       [] nil then
-	 Dico
+	 skip
       end
    end
    
@@ -62,6 +62,6 @@ define
       FirstNumbers = {GetFirstLine 'tweets/part_1.txt'}
       WordsList = {GetWords FirstNumbers}
       {CreateRec WordsList Dico}
-      {Browse Dico}
+      {Browse {Dictionary.get Dico must}}
    end   
 end
