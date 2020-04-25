@@ -28,12 +28,25 @@ define
 %%% Changes each ponctuation used for marking the end of a phrase by a point (46) in a line. Returns the new line.
    fun {MakePoint Line}
       case Line of H|T then
+	 
 	 if H == 46 then
-	    46|{MakePoint T}
-	 elseif H == 33 then
+	    46|{MakePoint T}   
+	 elseif H == 46 andthen T.1 == 46 then
 	    46|{MakePoint T}
 	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 then
 	    46|{MakePoint T}
+	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 then
+	    46|{MakePoint T}
+	    
+         elseif H == 33 then
+	    46|{MakePoint T}
+	 elseif H == 33 andthen T.1 == 33 then
+	    46|{MakePoint T}
+	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 then
+	    46|{MakePoint T}
+	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 then
+	    46|{MakePoint T}
+	    
 	 elseif H == 63 then
 	    46|{MakePoint T}
 	 elseif H == 58 then
@@ -76,10 +89,10 @@ define
       {String.tokens Line Char}
    end
 
-   %["salut iohef. duzgfzn eofn.foehiuh." "jizfioi. ziofhoifhnz. ofehiufh."] -> ["salut iohef" "duzgfzn eofn" ...]
+   %["salut iohef. duzgfzn eofn.foehiuh." "jizfioi. ziofhoifhnz. ofehiufh."] -> [["salut iohef" "duzgfzn eofn" "..."] [...]]
    fun {FileToPhrase File}
       case File of H|T then
-	 {GetWords H 46}|{FileToPhrase T}
+	 {Append {GetWords H 46} {FileToPhrase T}}
       [] nil then
 	 nil
       end
@@ -127,14 +140,15 @@ define
    {Text1 tk(insert 'end' {GetFirstLine "tweets/part_1.txt"})}
    {Text1 bind(event:"<Control-s>" action:Press)} % You can also bind events
 
-   local Dico X Dico1 Phrases Tweet Point Points PointsFile in
+   local Dico X Dico1 Phrases Tweet Point Points PointsFile I in
       Point = 46
       Tweet = {ReadFile 'tweets/part_1.txt' 1}
       Points =  {MakePoint "Salut. Je m'appelle Arthur! Comment tu vas ? PD."}
       PointsFile = {MakePointFromFile Tweet}
       Phrases = {FileToPhrase PointsFile}
       %{Browse Phrases}
-      {Browse {CorrectInput 'tweets/part_1.txt'}}
+      I = {CorrectInput 'tweets/part_1.txt'}
+      {Browse {StringToAtom I.2.2.1}}
    end   
 end
 
