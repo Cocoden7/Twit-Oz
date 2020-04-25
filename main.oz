@@ -69,20 +69,6 @@ define
 	 nil
       end
    end
-   
-      
-   proc {CreateRec WordsList Dico} % faut pouvoir mettre les lsites en string
-      case WordsList of H|T then
-	 case T of nil then
-	    skip
-	 else
-	    {Dictionary.put Dico {StringToAtom H} {StringToAtom T.1}}
-	    {CreateRec T Dico}
-	 end
-      [] nil then
-	 skip
-      end
-   end
 
    %%% Split the line by Char
    fun {GetWords Line Char}
@@ -115,6 +101,57 @@ define
    fun {CorrectInput File}
       {FileToPhrase {MakePointFromFile {ReadFile File 1}}}
    end
+
+%%%%%%%%%%%%%%%%%%%% parite dictionnaire %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   proc {CreateRec WordsList Dico} % faut pouvoir mettre les lsites en string
+      case WordsList of H|T then
+	 case T of nil then
+	    skip
+	 else
+	    {Dictionary.put Dico {StringToAtom H} {StringToAtom T.1}}
+	    {CreateRec T Dico}
+	 end
+      [] nil then
+	 skip
+      end
+   end
+
+   proc {DicoFromFile ListFile Dico}
+      case ListFile of H|T then
+	 {CreateRec {GetWords H 32} Dico}
+	 {DicoFromFile T Dico}
+      else
+	 skip
+      end
+      
+   end
+   
+
+   %proc {CreateRec PhraseList Dico} 
+    %  case PhraseList of H|T then
+%	 case H of H2|T2 then
+%	    skip
+%	 [] nil then
+%	    skip
+%	 end
+ %     end
+  % end
+
+   %local Words in
+    %  Words = {GetWords Phrase 32}
+   proc {PutInDicoFromPhrase Words Dico}
+      case Words of Word|T then
+	 {Dictionary.put Dico {StringToAtom Word} {StringToAtom T.1}}
+	 {PutInDicoFromPhrase T Dico}
+      else
+	 skip
+      end
+   end
+   
+      
+   
+
       
    
 %%% GUI
@@ -147,8 +184,18 @@ define
       PointsFile = {MakePointFromFile Tweet}
       Phrases = {FileToPhrase PointsFile}
       %{Browse Phrases}
-      I = {CorrectInput 'tweets/part_1.txt'}
-      {Browse {StringToAtom I.2.2.1}}
+      I = {CorrectInput 'tweets/part_1.txt'} % départ pour créer notre dictionnaire
+      %{Browse {StringToAtom I.2.2.1}}
+
+
+%%%% partie dico
+      {Dictionary.new Dico}
+      %{CreateRec I Dico}
+      %{Dictionary.get Dico 'must' X}
+      %{Browse X}
+      {DicoFromFile I Dico}
+      {Browse Dico}
+      {Browse {Dictionary.get Dico 'must'}}
    end   
 end
 
