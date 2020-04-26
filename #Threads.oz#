@@ -1,0 +1,13 @@
+proc{Disp S}
+   case S of X|S2 then
+      {Browse X}
+      {Disp S2}
+   end
+end
+
+declare S
+thread
+   {Disp S}
+end
+
+fun {Prod N} {Delay 1000} N|{Prod N+1} end 
