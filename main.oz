@@ -136,22 +136,50 @@ define
 
 %%%%%%%%%%%%%%%%%%%% Dictionary part %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+      % fonctionne bien
+   fun {Contains Dico Word}
+      local B in
+	 {Dictionary.member Dico Word B}
+	 B
+      end
+   end
+
+
 %%% WordsList : a list of words.
-%%% Returns : Dic(word1:word2 word2:word3 word3:word4 ...)
+%%% Returns : Dic(word1:Dic(word2:1, word57:2) word2:Dic(word3:2, word 45:3)) 
    proc {CreateRec WordsList Dico}
       case WordsList of H|T then
 	 case T of nil then
 	    skip
 	 else
-	    %{Dictionary.put Dico {ToLower {StringToAtom H}} {ToLower {StringToAtom T.1}}}  fonctionne pas car on peut pas faire to lower sur un atom
-	    %{Browse {IsString {StringToAtom H}}} un atom n'est pas un string 
-	    {Dictionary.put Dico {StringToAtom {ToLower {Filter H}}} {StringToAtom {ToLower {Filter T.1}}}}
+	    if {Contains Dico H} then % regarde si H est déjà une clé dans le gros dico
+	       local ValueDico Freq in
+		  {Dictionary.get Dico H ValueDico}
+		  if {Contains ValueDico T.1} then % regarde si T est déjà associé à H
+		     {Dictionary.get ValueDico T.1 Freq}
+		     {Dictionary.put ValueDico T.1 Freq+1} % à vérifier que ça ne crée pas de nouvelle clé
+		  else % si T n'a encore jamais été vu après H
+		     {Dictionary.put ValueDico T.1 1}
+		  end
+	       end
+	    else
+	       local ValueDico in
+		  {Dictionary.new ValueDico}
+		  {Dictionary.put ValueDico T.1 1}
+		  {Dictionary.put Dico H ValueDico}
+	       end
+	    end
 	    {CreateRec T Dico}
+	    
+	    %{Dictionary.put Dico {StringToAtom {ToLower {Filter H}}} {StringToAtom {ToLower {Filter T.1}}}}
+	    %{CreateRec T Dico}
 	 end
       [] nil then
 	 skip
       end
    end
+   
+   
 %%% ListFile : List of lines
 %%% Returns : Dic(word1:word2 word2:word3 word3:word4 ...) with all the words 
    proc {DicoFromFile ListFile Dico}
@@ -205,11 +233,11 @@ define
       
 %%%% partie dico
       {Dictionary.new Dico}
-      {DicoFromFile I Dico}
+      %{DicoFromFile I Dico}
+      {CreateRec {GetWords I.1 32} Dico}
+      {Browse {StringToAtom I.1}}
       Entries = {Dictionary.entries Dico}
       {Browse Entries}
-      X = {Dictionary.get Dico '@oann'} == '' % vient du fait que ce couillon met deux espaces de temps en temps
-      {Browse X}
    end   
 end
 
