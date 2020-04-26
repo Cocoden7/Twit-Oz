@@ -70,10 +70,23 @@ define
       end
    end
 
-   %%% Split the line by Char
+   %%% Split the phrase by Char
    fun {GetWords Line Char}
       {String.tokens Line Char}
    end
+
+   fun {FilterEmpty GetWords}
+      case GetWords of H|T then
+	 if {StringToAtom H} == '' then
+	    {FilterEmpty T}
+	 else
+	    H|{FilterEmpty T}
+	 end
+      else
+	 nil
+      end
+   end
+   
 
    %["salut iohef. duzgfzn eofn.foehiuh." "jizfioi. ziofhoifhnz. ofehiufh."] -> ["salut iohef" "duzgfzn eofn" "..."]
    fun {FileToPhrase File}
@@ -98,8 +111,15 @@ define
       end
    end
 
-   fun {FilterWord String} % c'est quoi le string qu'on reçoit ?
-      case String of H|T then nil
+   fun {Filter String} % c'est quoi le string qu'on reçoit ?
+      case String of H|T then
+	 if H == 40 then
+	    {Filter T}
+	 elseif H == 41 then
+	    {Filter T}
+	 else
+	    H|{Filter T}
+	 end
       else
 	 nil
       end
@@ -125,7 +145,7 @@ define
 	 else
 	    %{Dictionary.put Dico {ToLower {StringToAtom H}} {ToLower {StringToAtom T.1}}}  fonctionne pas car on peut pas faire to lower sur un atom
 	    %{Browse {IsString {StringToAtom H}}} un atom n'est pas un string 
-	    {Dictionary.put Dico {StringToAtom {ToLower H}} {StringToAtom {ToLower T.1}}}
+	    {Dictionary.put Dico {StringToAtom {ToLower {Filter H}}} {StringToAtom {ToLower {Filter T.1}}}}
 	    {CreateRec T Dico}
 	 end
       [] nil then
@@ -136,14 +156,16 @@ define
 %%% Returns : Dic(word1:word2 word2:word3 word3:word4 ...) with all the words 
    proc {DicoFromFile ListFile Dico}
       case ListFile of H|T then
-	 {CreateRec {GetWords H 32} Dico}
+	 {CreateRec {FilterEmpty {GetWords H 32}} Dico} % ici que je dois mettre filterempty ?
 	 {DicoFromFile T Dico}
       else
 	 skip
       end
       
    end
-      
+
+
+   
    
 %%% GUI
     % Make the window description, all the parameters are explained here:
@@ -168,7 +190,10 @@ define
    {Text1 tk(insert 'end' {GetFirstLine "tweets/part_1.txt"})}
    {Text1 bind(event:"<Control-s>" action:Press)} % You can also bind events
 
-   local Dico X Dico1 Phrases Tweet Point Points PointsFile I Entries B in
+
+
+   
+   local Dico Phrases Tweet Point Points PointsFile I X in
       Point = 46
       Tweet = {ReadFile 'tweets/part_1.txt' 1}
       Points =  {MakePoint "Salut. Je m'appelle Arthur! Comment tu vas ? PD."}
@@ -183,7 +208,8 @@ define
       {DicoFromFile I Dico}
       Entries = {Dictionary.entries Dico}
       {Browse Entries}
-      {Browse {Dictionary.get Dico '(crown'}}
+      X = {Dictionary.get Dico '@oann'} == '' % vient du fait que ce couillon met deux espaces de temps en temps
+      {Browse X}
    end   
 end
 
