@@ -98,13 +98,18 @@ define
       end
    end
 
+   % Faire un ToLower !
+   % File : name of the file 
+   % Returns : a list of phrases from the file splitted phrase by phrase
    fun {CorrectInput File}
       {FileToPhrase {MakePointFromFile {ReadFile File 1}}}
    end
 
-%%%%%%%%%%%%%%%%%%%% parite dictionnaire %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% Dictionary part %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-   proc {CreateRec WordsList Dico} % faut pouvoir mettre les lsites en string
+%%% WordsList : a list of words.
+%%% Returns : Dic(word1:word2 word2:word3 word3:word4 ...)
+   proc {CreateRec WordsList Dico}
       case WordsList of H|T then
 	 case T of nil then
 	    skip
@@ -116,7 +121,8 @@ define
 	 skip
       end
    end
-
+%%% ListFile : List of lines
+%%% Returns : Dic(word1:word2 word2:word3 word3:word4 ...) with all the words 
    proc {DicoFromFile ListFile Dico}
       case ListFile of H|T then
 	 {CreateRec {GetWords H 32} Dico}
@@ -126,32 +132,6 @@ define
       end
       
    end
-   
-
-   %proc {CreateRec PhraseList Dico} 
-    %  case PhraseList of H|T then
-%	 case H of H2|T2 then
-%	    skip
-%	 [] nil then
-%	    skip
-%	 end
- %     end
-  % end
-
-   %local Words in
-    %  Words = {GetWords Phrase 32}
-   proc {PutInDicoFromPhrase Words Dico}
-      case Words of Word|T then
-	 {Dictionary.put Dico {StringToAtom Word} {StringToAtom T.1}}
-	 {PutInDicoFromPhrase T Dico}
-      else
-	 skip
-      end
-   end
-   
-      
-   
-
       
    
 %%% GUI
@@ -177,7 +157,7 @@ define
    {Text1 tk(insert 'end' {GetFirstLine "tweets/part_1.txt"})}
    {Text1 bind(event:"<Control-s>" action:Press)} % You can also bind events
 
-   local Dico X Dico1 Phrases Tweet Point Points PointsFile I in
+   local Dico X Dico1 Phrases Tweet Point Points PointsFile I Entries B in
       Point = 46
       Tweet = {ReadFile 'tweets/part_1.txt' 1}
       Points =  {MakePoint "Salut. Je m'appelle Arthur! Comment tu vas ? PD."}
@@ -186,16 +166,13 @@ define
       %{Browse Phrases}
       I = {CorrectInput 'tweets/part_1.txt'} % départ pour créer notre dictionnaire
       %{Browse {StringToAtom I.2.2.1}}
-
-
+      
 %%%% partie dico
       {Dictionary.new Dico}
-      %{CreateRec I Dico}
-      %{Dictionary.get Dico 'must' X}
-      %{Browse X}
       {DicoFromFile I Dico}
-      {Browse Dico}
-      {Browse {Dictionary.get Dico 'must'}}
+      Entries = {Dictionary.entries Dico}
+      {Browse Entries}
+      {Browse {Dictionary.get Dico 'daily'}}
    end   
 end
 
