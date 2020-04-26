@@ -75,7 +75,7 @@ define
       {String.tokens Line Char}
    end
 
-   %["salut iohef. duzgfzn eofn.foehiuh." "jizfioi. ziofhoifhnz. ofehiufh."] -> [["salut iohef" "duzgfzn eofn" "..."] [...]]
+   %["salut iohef. duzgfzn eofn.foehiuh." "jizfioi. ziofhoifhnz. ofehiufh."] -> ["salut iohef" "duzgfzn eofn" "..."]
    fun {FileToPhrase File}
       case File of H|T then
 	 {Append {GetWords H 46} {FileToPhrase T}}
@@ -98,6 +98,15 @@ define
       end
    end
 
+   fun {FilterWord String} % c'est quoi le string qu'on reçoit ?
+      case String of H|T then nil
+      else
+	 nil
+      end
+   end
+   
+	 
+
    % Faire un ToLower !
    % File : name of the file 
    % Returns : a list of phrases from the file splitted phrase by phrase
@@ -114,7 +123,9 @@ define
 	 case T of nil then
 	    skip
 	 else
-	    {Dictionary.put Dico {StringToAtom H} {StringToAtom T.1}}
+	    %{Dictionary.put Dico {ToLower {StringToAtom H}} {ToLower {StringToAtom T.1}}}  fonctionne pas car on peut pas faire to lower sur un atom
+	    %{Browse {IsString {StringToAtom H}}} un atom n'est pas un string 
+	    {Dictionary.put Dico {StringToAtom {ToLower H}} {StringToAtom {ToLower T.1}}}
 	    {CreateRec T Dico}
 	 end
       [] nil then
@@ -172,7 +183,7 @@ define
       {DicoFromFile I Dico}
       Entries = {Dictionary.entries Dico}
       {Browse Entries}
-      {Browse {Dictionary.get Dico 'daily'}}
+      {Browse {Dictionary.get Dico '(crown'}}
    end   
 end
 
