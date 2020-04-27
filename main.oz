@@ -12,11 +12,11 @@ define
    Show = System.show
    
 %%% Read line
-   fun {GetFirstLine IN_NAME}
-      {Reader.scan {New Reader.textfile init(name:IN_NAME)} 1}
+   fun {GetFirstLine IN_NAME I}
+      {Reader.scan {New Reader.textfile init(name:IN_NAME)} I}
    end
 
-%%% Stock each lines of the file in a list and returns it
+%%% Stock each lines of the file in a list and returns it, N = 1
    fun {ReadFile IN_NAME N}
       if {Reader.scan {New Reader.textfile init(name:IN_NAME)} N} == none then
 	 nil
@@ -215,34 +215,42 @@ define
    W={QTk.build Description}
    {W show}
    
-   {Text1 tk(insert 'end' {GetFirstLine "tweets/part_1.txt"})}
+   {Text1 tk(insert 'end' {GetFirstLine "tweets/part_1.txt" 1})}
    {Text1 bind(event:"<Control-s>" action:Press)} % You can also bind events
 
-
-
    
-   local Dico Dico2 Phrases Tweet Point Points PointsFile I X in
-      Point = 46
-      Tweet = {ReadFile 'tweets/part_1.txt' 1}
-      Points =  {MakePoint "Salut. Je m'appelle Arthur! Comment tu vas ? PD."}
-      PointsFile = {MakePointFromFile Tweet}
-      Phrases = {FileToPhrase PointsFile}
-      %{Browse Phrases}
-      I = {CorrectInput 'tweets/part_1.txt'} % départ pour créer notre dictionnaire
+   proc {Consumer File}
+      {Delay 5000}
+      case File of H|T then	 
+	 {Browse {StringToAtom H}} {Consumer T}
+      else
+	 skip
+      end
+   end
+   
+%%% Producer : Produce the content of FileName
+   fun {Prod FileName} {Delay 1000} {ReadFile FileName 1} end
+   
+   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S in
+      I = {CorrectInput 'tweets/part_1.txt'}
+      I2 = {CorrectInput 'tweets/part_2.txt'}
       %{Browse {StringToAtom I.2.2.2.2.2.2.1}}
       
 %%%% partie dico
       {Dictionary.new Dico}
-      %{DicoFromFile I Dico}
-      %{CreateRec {GetWords I.1 32} Dico}
-      %{Browse {StringToAtom I.1}}
-      %{Dictionary.get Dico must Dico2}
-      %{Browse {Dictionary.entries Dico2}}
       {DicoFromFile I Dico}
       Entries = {Dictionary.entries Dico}
       {Browse Entries}
       {Dictionary.get Dico 'and' Dico2}
       {Browse {Dictionary.entries Dico2}}
+
+%%% Threads
+      thread
+	 S = {Prod 'tweets/part_1.txt'}
+      end
+      thread
+	 {Consumer S}
+      end
    end   
 end
 
