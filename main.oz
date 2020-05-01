@@ -180,7 +180,7 @@ define
    
    
 %%% ListFile : List of phrases
-%%% Returns : Dic(word1:word2 word2:word3 word3:word4 ...) with all the words 
+%%% Returns : Dic(word1:Dic1(word2:2 word19:4...) word2:Dic2(word3:2 word78:5...) word3:Dic3(word4:3 word8:1...) ...) with all the words 
    proc {DicoFromFile ListFile Dico}
       case ListFile of H|T then
 	 %{CreateRec {FilterEmpty {GetWords H 32}} Dico} % ici que je dois mettre filterempty ?
@@ -227,14 +227,27 @@ define
       end
    end
    
-%%% Producer : Produce the content of FileName
-   fun {Prod FileName}
-      {Delay 1000}
-      {ReadFile FileName 1}
+%%% Producer : Take the tweet files between Count and Val and merge them together
+   fun {Prod Count Val}
+      %{Delay 5000}
+      if Count < Val then
+	 {Append {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}} {Prod Count+1 Val}}
+      else
+	 nil
+      end
    end
-   
-   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S in
-      I = {CorrectInput 'tweets/part_1.txt'}
+
+   proc {Browser1 File}
+      case File of S1|S2 then
+	 {Browse S1} {Browser1 S2}
+      else
+	 skip
+      end
+   end
+      
+   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 in
+      X = 1
+      I = {CorrectInput {VirtualString.toString 'tweets/part_'#X#'.txt'}}
       I2 = {CorrectInput 'tweets/part_2.txt'}
       %{Browse {StringToAtom I.2.2.2.2.2.2.1}}
       
@@ -242,17 +255,40 @@ define
       {Dictionary.new Dico}
       {DicoFromFile I Dico}
       Entries = {Dictionary.entries Dico}
-      {Browse Entries}
+      % {Browse Entries}
       {Dictionary.get Dico 'and' Dico2}
-      {Browse {Dictionary.entries Dico2}}
+      %{Browse {Dictionary.entries Dico2}}
+      
+%%% Threads for reading %%%
+      thread
+	 L1 = {Prod 1 3}
+	 {Browse L1}
+      end
+      thread
+	 L2 = {Prod 53 104}
+      end
+      thread
+	 L3 = {Prod 105 156}
+      end
+      thread
+	 L4 = {Prod 157 208}
+      end
 
-%%% Threads
+%%% Threads for parsing %%%
       thread
-	 S = {Prod 'tweets/part_1.txt'}
+	% {DicoFromFile L1 D1}
+	% {Browser1 L1}
+	 skip
       end
-      thread
-	 {Consumer S}
-      end
+     % thread
+%	 {DicoFromFile L2 D2}
+ %     end
+  %   thread
+%	 {DicoFromFile L3 D3}
+ %     end
+  %    thread
+%	 {DicoFromFile L4 D4}
+ %     end
    end   
 end
 
