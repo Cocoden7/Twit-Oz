@@ -112,7 +112,7 @@ define
       end
    end
 
-   fun {Filter String} % c'est quoi le string qu'on reçoit ?
+   fun {Filter String} % c'est quoi le string qu'on reÃ§oit ?
       case String of H|T then
 	 if H == 40 then
 	    {Filter T}
@@ -153,13 +153,13 @@ define
 	 case T of nil then
 	    skip
 	 else
-	    if {Contains Dico {StringToAtom H}} then % regarde si H est déjà une clé dans le gros dico
+	    if {Contains Dico {StringToAtom H}} then % regarde si H est dÃ©jÃ  une clÃ© dans le gros dico
 	       local ValueDico Freq in
 		  {Dictionary.get Dico {StringToAtom H} ValueDico}
-		  if {Contains ValueDico {StringToAtom T.1}} then % regarde si T est déjà associé à H
+		  if {Contains ValueDico {StringToAtom T.1}} then % regarde si T est dÃ©jÃ  associÃ© Ã  H
 		     {Dictionary.get ValueDico {StringToAtom T.1} Freq}
-		     {Dictionary.put ValueDico {StringToAtom T.1} Freq+1} % à vérifier que ça ne crée pas de nouvelle clé
-		  else % si T n'a encore jamais été vu après H
+		     {Dictionary.put ValueDico {StringToAtom T.1} Freq+1} % Ã  vÃ©rifier que Ã§a ne crÃ©e pas de nouvelle clÃ©
+		  else % si T n'a encore jamais Ã©tÃ© vu aprÃ¨s H
 		     {Dictionary.put ValueDico {StringToAtom T.1} 1}
 		  end
 	       end
@@ -316,7 +316,6 @@ define
 	 {DicoFromFiles L4 D1}
 	 {Browse 4}
       end
-      {Browse {Dictionary.entries D1}}
    end   
 end
 
