@@ -316,7 +316,6 @@ define
 	 {DicoFromFiles L4 D1}
 	 {Browse 4}
       end
-      {Browse {Dictionary.entries D1}}
    end   
 end
 
