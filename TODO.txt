@@ -1,0 +1,12 @@
+TO DO Twit-Oz:
+
+CorentinLeCrabe
+- Filtrer les caractères spéciaux (List.map)
+- Créer une fonction Main qui retourne le dictionnaire
+- Agencer le code (le rendre plus beau, l'organiser)
+
+ArthuuuuuuuuuuuuuuuuuuuuuuuuuuuuRRRRRRrRRRrrrr
+- Faire le MakeFile
+- Faire le ReadMe
+- Créer l'interface 
+(- Revoir les fonctions) 

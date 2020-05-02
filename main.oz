@@ -202,7 +202,7 @@ define
 			      title: "Frequency count"
 			      lr(
 				 text(handle:Text1 width:28 height:5 background:white foreground:black wrap:word)
-				 button(text:"Change" action:Press)
+				 button(text:"Match" action:Press)
 				 )
 			      text(handle:Text2 width:28 height:5 background:black foreground:white glue:w wrap:word)
 			      action:proc{$}{Application.exit 0} end % quit app gracefully on window closing
@@ -260,21 +260,56 @@ define
 	 skip
       end
    end
+
+
+%%%%%%%%%% Get best word part %%%%%%%%%%%%%%%%
+
+%%% Returns the best match with Word
+   fun {GetBestWordAfter Word Dic}
+      local Dic2 in
+	 {Dictionary.get Dic Word Dic2}
+	 {GetHighestFreq Dic2}
+      end
+   end
+
+%%% Returns the Word with the highest freq in Dic 
+   fun {GetHighestFreq Dic}
+      local Keys Items Index in
+	 Keys = {Dictionary.keys Dic}
+	 Items = {Dictionary.items Dic}
+	 Index = {Max Items 1 1 0}
+	 {Nth Keys Index}
+      end
+   end
+   
+   
+%%% Returns the index of the max of a list L (I = 1, Max = 0)
+   fun {Max L I IMax Maxi}
+      case L of H|T then
+	 if H > Maxi then
+	    {Max T I+1 I H}
+	 else
+	    {Max T I+1 IMax Maxi}
+	 end
+      else
+	 IMax
+      end
+   end
    
       
-   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 in
+   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord in
       X = 1
       I = {CorrectInput {VirtualString.toString 'tweets/part_'#X#'.txt'}}
-      I2 = {CorrectInput 'tweets/part_2.txt'}
-      %{Browse {StringToAtom I.2.2.2.2.2.2.1}}
-      
 %%%% partie dico
       {Dictionary.new Dico}
       {DicoFromFile I Dico}
       Entries = {Dictionary.entries Dico}
-      % {Browse Entries}
+      %{Browse Entries}
       {Dictionary.get Dico 'and' Dico2}
-      %{Browse {Dictionary.entries Dico2}}
+      BestWord = {GetBestWordAfter 'and' Dico}
+      {Browse BestWord}
+      
+      {Browse {Dictionary.entries Dico2}}
       {Dictionary.new D1}
       {Dictionary.new D2}
       {Dictionary.new D3}
@@ -299,23 +334,33 @@ define
       thread
 	 % {Browser1 L1}
 	 {DicoFromFiles L1 D1}
+	 A = 1
 	 {Browse 1}
-	 {Browse {Dictionary.entries D1}}
-	 {Dictionary.get Dico 'and' Dico2}
-	 {Browse {Dictionary.entries Dico2}}
+	 %{Browse {Dictionary.entries D1}}
+	 %{Dictionary.get Dico 'and' Dico2}
+	 %{Browse {Dictionary.entries Dico2}}
       end
       thread
 	 {DicoFromFiles L2 D1}
+	 B = 1
 	 {Browse 2}
       end
       thread
 	 {DicoFromFiles L3 D1}
+	 C = 1
 	 {Browse 3}
       end
       thread
 	 {DicoFromFiles L4 D1}
+	 D = 1
 	 {Browse 4}
       end
+      {Wait A}
+      {Wait B}
+      {Wait C}
+      {Wait D}
+      {Browse "finish"}
+      {Browse {Dictionary.entries D1}}
    end   
 end
 
