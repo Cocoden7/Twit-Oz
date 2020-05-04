@@ -226,7 +226,7 @@ define
 		  if {Contains ValueDico {StringToAtom T.1}} then % regarde si T est déjà associé à H
 		     {Dictionary.get ValueDico {StringToAtom T.1} Freq}
 		     {Dictionary.put ValueDico {StringToAtom T.1} Freq+1} % à vérifier que ça ne crée pas de nouvelle clé
-		  else % si T n'a encore jamais été vu après H
+		  else % si T n'a encore jamais �t� vu apr�s H 
 		     {Dictionary.put ValueDico {StringToAtom T.1} 1}
 		  end
 	       end
@@ -259,7 +259,7 @@ define
       %{Delay 5000}
       if Count < Val+1 then
 	 % {Append {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}} {Prod Count+1 Val}}
-	  {CorrectInput {VirtualString.toString 'tests/je_'#Count#'.txt'}}|{Prod Count+1 Val}
+	  {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}}|{Prod Count+1 Val}
       else
 	 nil
       end
@@ -282,20 +282,21 @@ define
 
 %%% ListFile : List of phrases
 %%% Returns : Dic(word1:Dic1(word2:2 word19:4...) word2:Dic2(word3:2 word78:5...) word3:Dic3(word4:3 word8:1...) ...) with all the words 
-   proc {DicoFromFile ListFile Dico}
+   proc {DicoFromFile ListFile Dico Lock}
       case ListFile of H|T then
-	 %{CreateRec {FilterEmpty {GetWords H 32}} Dico} % ici que je dois mettre filterempty ?
-	 {CreateRec {GetWords H 32} Dico}
-	 {DicoFromFile T Dico}
+	 lock Lock then
+	    {CreateRec {GetWords H 32} Dico}
+	    {DicoFromFile T Dico Lock}
+	 end	 
       else
 	 skip
       end
-      
    end
    
-   proc {DicoFromFiles Files Dico}
+   proc {DicoFromFiles Files Dico Lock}
+      
       case Files of S1|S2 then
-	 {DicoFromFile S1 Dico} {DicoFromFiles S2 Dico}
+	 {DicoFromFile S1 Dico Lock} {DicoFromFiles S2 Dico Lock}
       else
 	 skip
       end
@@ -329,18 +330,18 @@ define
       end
    end
       
-   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord in
+   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord Lock in
       X = 1
-      I = {CorrectInput {VirtualString.toString 'tweets/part_'#X#'.txt'}}
+      %I = {CorrectInput {VirtualString.toString 'tweets/part_'#X#'.txt'}}
 %%%% partie dico
-      {Dictionary.new Dico}
-      {DicoFromFile I Dico}
-      Entries = {Dictionary.entries Dico}
-      {Dictionary.get Dico 'and' Dico2}
-      BestWord = {GetHighestFreq Dico2}
-      {Browse BestWord}
+      %{Dictionary.new Dico}
+      %{DicoFromFile I Dico}
+      %Entries = {Dictionary.entries Dico}
+      %{Dictionary.get Dico 'and' Dico2}
+      %BestWord = {GetHighestFreq Dico2}
+      %{Browse BestWord}
       
-      {Browse {Dictionary.entries Dico2}}
+      %{Browse {Dictionary.entries Dico2}}
       {Dictionary.new D1}
       %{Dictionary.new D2}
       {Dictionary.new D3}
@@ -362,9 +363,10 @@ define
       end
 
 %%% Threads for parsing %%%
+      {NewLock Lock}
       thread
 	 % {Browser1 L1}
-	 {DicoFromFiles L1 D1}
+	 {DicoFromFiles L1 D1 Lock}
 	 A = 1
 	 {Browse 1}
 	 %{Browse {Dictionary.entries D1}}
@@ -372,17 +374,17 @@ define
 	 %{Browse {Dictionary.entries Dico2}}
       end
       thread
-	 {DicoFromFiles L2 D1}
+	 {DicoFromFiles L2 D1 Lock}
 	 B = 1
 	 {Browse 2}
       end
       thread
-	 {DicoFromFiles L3 D1}
+	 {DicoFromFiles L3 D1 Lock}
 	 C = 1
 	 {Browse 3}
       end
       thread
-	 {DicoFromFiles L4 D1}
+	 {DicoFromFiles L4 D1 Lock}
 	 D = 1
 	 {Browse 4}
       end
@@ -391,7 +393,7 @@ define
       {Wait C}
       {Wait D}
       {Browse {Dictionary.entries D1}}
-      {Dictionary.get D1 'je' D2}
+      {Dictionary.get D1 'and' D2}
       {Browse {Dictionary.entries D2}}
       {Browse {GetHighestFreq D2}}
    end   
