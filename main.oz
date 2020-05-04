@@ -11,10 +11,48 @@ define
    Browse = Browser.browse
    Show = System.show
    
-%%% Read line
-   fun {GetFirstLine IN_NAME I}
+%%% Read Ith line (un peu useless)
+   fun {GetLine IN_NAME I}
       {Reader.scan {New Reader.textfile init(name:IN_NAME)} I}
    end
+
+   
+%%% GUI
+    % Make the window description, all the parameters are explained here:
+    % http://mozart2.org/mozart-v1/doc-1.4.0/mozart-stdlib/wp/qtk/html/node7.html)
+   Text1 Text2 E R Description=td(
+				  title: "Frequency count"
+				  entry(init:"type a word here"
+					handle:E
+					return:R
+					background:black
+					action:proc{$} {Show {String.toAtom {E get($)}}} {Text1 set(1:{String.toAtom {E get($)}})} end )
+				  lr(
+				     text(handle:Text1 width:28 height:5 background:white foreground:black wrap:word)
+				     button(text:"Match" action:Press)
+				     button(text:"Clean" action:Restart)
+				     )
+				  text(handle:Text2 width:28 height:5 background:black foreground:white glue:w wrap:word)
+				  action:proc{$}{Application.exit 0} end % quit app gracefully on window closing
+				  )
+   proc {Press} Inserted in
+      % {Dictionary.get D1 'make' D2}
+      Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
+      {Text2 set(1:Inserted)} % you can get/set text this way too
+   end
+   
+   proc {Restart} Inserted in
+      Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
+      {Text1 set(1:"")}
+      {Text2 set(1:"...")} % you can get/set text this way too
+   end
+    % Build the layout from the description
+   W={QTk.build Description}
+   {W show}
+   % {Text1 tk(insert 'end' {GetLine "tweets/part_1.txt" 1})}
+   {Text1 tk(insert 'end' {GetLine "tweets/part_1.txt" 1})}
+   {Text1 bind(event:"<Control-s>" action:Press)} % You can also bind events
+
 
 %%% Stock each lines of the file in a list and returns it, N = 1
    fun {ReadFile IN_NAME N}
@@ -28,7 +66,7 @@ define
 %%% Changes each ponctuation used for marking the end of a phrase by a point (46) in a line. Returns the new line.
    fun {MakePoint Line}
       case Line of H|T then
-	 
+	 % .
 	 if H == 46 then
 	    46|{MakePoint T}   
 	 elseif H == 46 andthen T.1 == 46 then
@@ -37,7 +75,9 @@ define
 	    46|{MakePoint T}
 	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 then
 	    46|{MakePoint T}
-	    
+	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 andthen T.2.2.2.1 == 46 then
+	    46|{MakePoint T}
+	    % !
          elseif H == 33 then
 	    46|{MakePoint T}
 	 elseif H == 33 andthen T.1 == 33 then
@@ -46,12 +86,46 @@ define
 	    46|{MakePoint T}
 	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 then
 	    46|{MakePoint T}
-	    
+	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 andthen T.2.2.2.1 == 33 then
+	    46|{MakePoint T}
+	    % ?
 	 elseif H == 63 then
 	    46|{MakePoint T}
+	    % "
+	 elseif H == 34 then
+	    46|{MakePoint T}
+	    % #
+	 elseif H == 35 then
+	    46|{MakePoint T}
+	    % (
+	 elseif H == 40 then
+	    46|{MakePoint T}
+	    % )
+	 elseif H == 41 then
+	    46|{MakePoint T}
+	    % *
+	 elseif H == 42 then
+	    46|{MakePoint T}
+	    % :
 	 elseif H == 58 then
 	    46|{MakePoint T}
+	    % ;
 	 elseif H == 59 then
+	    46|{MakePoint T}
+	    % @
+	 elseif H == 64 then
+	    46|{MakePoint T}
+	    % [
+	 elseif H == 91 then
+	    46|{MakePoint T}
+	    % ]
+	 elseif H == 93 then
+	    46|{MakePoint T}
+	    % {
+	 elseif H == 123 then
+	    46|{MakePoint T}
+	    % }
+	 elseif H == 125 then
 	    46|{MakePoint T}
 	 else
 	    H|{MakePoint T}
@@ -61,7 +135,7 @@ define
       end
    end
 
- %%% Returns : List of all the lines with only points (no ',' ';' '?' '!' ...) 
+ %%% Returns : File is a list of lines. List of all the lines with only points (no ',' ';' '?' '!' ...) 
    fun {MakePointFromFile File}
       case File of L1|L2 then
 	 {MakePoint L1}|{MakePointFromFile L2}	 
@@ -70,7 +144,7 @@ define
       end
    end
    
-%%% Split the phrase by Char
+%%% Split the phrase by Char (point = 46)
    fun {GetWords Line Char}
       {String.tokens Line Char}
    end
@@ -99,7 +173,7 @@ define
    end
    
 	 
-
+   %%% Returns : the String without maj
    fun {ToLower String}
       case String of H|T then
 	 if {Char.isUpper H} then
@@ -112,21 +186,14 @@ define
       end
    end
 
-   fun {Filter String} % c'est quoi le string qu'on reçoit ?
-      case String of H|T then
-	 if H == 40 then
-	    {Filter T}
-	 elseif H == 41 then
-	    {Filter T}
-	 else
-	    H|{Filter T}
-	 end
-      else
-	 nil
+
+%%% Returns : 
+   fun {FilterMaj File}
+      case File of H|T then
+	 {Map H ToLower}|{FilterMaj T}
       end
    end
    
-	 
 
    % Faire un ToLower !
    % File : name of the file 
@@ -192,32 +259,6 @@ define
       
    end
 
-
-   
-   
-%%% GUI
-    % Make the window description, all the parameters are explained here:
-    % http://mozart2.org/mozart-v1/doc-1.4.0/mozart-stdlib/wp/qtk/html/node7.html)
-   Text1 Text2 Description=td(
-			      title: "Frequency count"
-			      lr(
-				 text(handle:Text1 width:28 height:5 background:white foreground:black wrap:word)
-				 button(text:"Match" action:Press)
-				 )
-			      text(handle:Text2 width:28 height:5 background:black foreground:white glue:w wrap:word)
-			      action:proc{$}{Application.exit 0} end % quit app gracefully on window closing
-			      )
-   proc {Press} Inserted in
-      Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
-      {Text2 set(1:Inserted)} % you can get/set text this way too
-   end
-    % Build the layout from the description
-   W={QTk.build Description}
-   {W show}
-   
-   {Text1 tk(insert 'end' {GetFirstLine "tweets/part_1.txt" 1})}
-   {Text1 bind(event:"<Control-s>" action:Press)} % You can also bind events
-
    
    proc {Consumer File}
       case File of H|T then	 
@@ -227,7 +268,7 @@ define
       end
    end
    
-%%% Producer : Take the tweet files between Count and Val and merge them together
+%%% Producer : Take the tweet files between Count and Val and merge them together in a list
    fun {Prod Count Val}
       %{Delay 5000}
       if Count < Val then
@@ -264,13 +305,6 @@ define
 
 %%%%%%%%%% Get best word part %%%%%%%%%%%%%%%%
 
-%%% Returns the best match with Word
-   fun {GetBestWordAfter Word Dic}
-      local Dic2 in
-	 {Dictionary.get Dic Word Dic2}
-	 {GetHighestFreq Dic2}
-      end
-   end
 
 %%% Returns the Word with the highest freq in Dic 
    fun {GetHighestFreq Dic}
@@ -295,7 +329,6 @@ define
 	 IMax
       end
    end
-   
       
    local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord in
       X = 1
@@ -304,30 +337,29 @@ define
       {Dictionary.new Dico}
       {DicoFromFile I Dico}
       Entries = {Dictionary.entries Dico}
-      %{Browse Entries}
       {Dictionary.get Dico 'and' Dico2}
-      BestWord = {GetBestWordAfter 'and' Dico}
+      BestWord = {GetHighestFreq Dico2}
       {Browse BestWord}
       
       {Browse {Dictionary.entries Dico2}}
       {Dictionary.new D1}
-      {Dictionary.new D2}
+      %{Dictionary.new D2}
       {Dictionary.new D3}
       {Dictionary.new D4}
       
 %%% Threads for reading %%%
       thread
-	 L1 = {Prod 1 52}
+	 L1 = {Prod 1 2}
 	 % {Browser1 L1}
       end
       thread
-	 L2 = {Prod 53 104}
+	 L2 = {Prod 3 4}
       end
       thread
-	 L3 = {Prod 105 156}
+	 L3 = {Prod 5 6}
       end
       thread
-	 L4 = {Prod 157 208}
+	 L4 = {Prod 7 8}
       end
 
 %%% Threads for parsing %%%
@@ -359,8 +391,11 @@ define
       {Wait B}
       {Wait C}
       {Wait D}
-      {Browse "finish"}
       {Browse {Dictionary.entries D1}}
+      %{Dictionary.get D1 'make' D2}
+      {Browse {Dictionary.entries D2}}
+      {Browse {GetHighestFreq D2}}
+
    end   
 end
 
