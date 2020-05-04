@@ -246,20 +246,6 @@ define
    end
    
    
-%%% ListFile : List of phrases
-%%% Returns : Dic(word1:Dic1(word2:2 word19:4...) word2:Dic2(word3:2 word78:5...) word3:Dic3(word4:3 word8:1...) ...) with all the words 
-   proc {DicoFromFile ListFile Dico}
-      case ListFile of H|T then
-	 %{CreateRec {FilterEmpty {GetWords H 32}} Dico} % ici que je dois mettre filterempty ?
-	 {CreateRec {GetWords H 32} Dico}
-	 {DicoFromFile T Dico}
-      else
-	 skip
-      end
-      
-   end
-
-   
    proc {Consumer File}
       case File of H|T then	 
 	 {Browse {StringToAtom H}} {Consumer T}
@@ -271,9 +257,9 @@ define
 %%% Producer : Take the tweet files between Count and Val and merge them together in a list
    fun {Prod Count Val}
       %{Delay 5000}
-      if Count < Val then
+      if Count < Val+1 then
 	 % {Append {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}} {Prod Count+1 Val}}
-	  {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}}|{Prod Count+1 Val}
+	  {CorrectInput {VirtualString.toString 'tests/je_'#Count#'.txt'}}|{Prod Count+1 Val}
       else
 	 nil
       end
@@ -294,6 +280,19 @@ define
       end
    end
 
+%%% ListFile : List of phrases
+%%% Returns : Dic(word1:Dic1(word2:2 word19:4...) word2:Dic2(word3:2 word78:5...) word3:Dic3(word4:3 word8:1...) ...) with all the words 
+   proc {DicoFromFile ListFile Dico}
+      case ListFile of H|T then
+	 %{CreateRec {FilterEmpty {GetWords H 32}} Dico} % ici que je dois mettre filterempty ?
+	 {CreateRec {GetWords H 32} Dico}
+	 {DicoFromFile T Dico}
+      else
+	 skip
+      end
+      
+   end
+   
    proc {DicoFromFiles Files Dico}
       case Files of S1|S2 then
 	 {DicoFromFile S1 Dico} {DicoFromFiles S2 Dico}
@@ -349,17 +348,17 @@ define
       
 %%% Threads for reading %%%
       thread
-	 L1 = {Prod 1 2}
+	 L1 = {Prod 1 1}
 	 % {Browser1 L1}
       end
       thread
-	 L2 = {Prod 3 4}
+	 L2 = {Prod 2 2}
       end
       thread
-	 L3 = {Prod 5 6}
-      end
+	 L3 = {Prod 3 3}
+       end
       thread
-	 L4 = {Prod 7 8}
+	 L4 = {Prod 4 4}
       end
 
 %%% Threads for parsing %%%
@@ -392,10 +391,9 @@ define
       {Wait C}
       {Wait D}
       {Browse {Dictionary.entries D1}}
-      %{Dictionary.get D1 'make' D2}
+      {Dictionary.get D1 'je' D2}
       {Browse {Dictionary.entries D2}}
       {Browse {GetHighestFreq D2}}
-
    end   
 end
 
