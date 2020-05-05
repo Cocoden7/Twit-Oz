@@ -317,11 +317,35 @@ define
 				  action:proc{$}{Application.exit 0} end % quit app gracefully on window closing
 				     )
       proc {Press}
-	 Inserted in
-	 {Dictionary.get D1 'and' D2}
+	 Inserted D5 in
 	 Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
-	 {Text2 set(1:{GetHighestFreq D2})} % you can get/set text this way too
+	 %{Browse {GetLastWordOfPhrase {GetWords Inserted 32}}}
+	 {Dictionary.get D1 {StringToAtom {GetLastWordOfPhrase {GetWords Inserted 32}}} D5}
+	 
+	 {Text2 set(1:{GetHighestFreq D5})} % you can get/set text this way too
       end
+
+      fun {GetLastWordOfPhrase ListOfWord}
+	 case ListOfWord of H|T then
+	    if T == nil then {GetWithoutBackSlash H}
+	    else
+	       {GetLastWordOfPhrase T}
+	    end
+	 end
+      end
+
+      fun {GetWithoutBackSlash Word}
+	 case Word of H|T then
+	    if H == 10 then {GetWithoutBackSlash T}
+	    else
+	       H|{GetWithoutBackSlash T}
+	    end
+	 else
+	    nil
+	 end
+      end
+      
+      
       
       proc {Restart}
 	 Inserted in
