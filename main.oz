@@ -20,38 +20,8 @@ define
 %%% GUI
     % Make the window description, all the parameters are explained here:
     % http://mozart2.org/mozart-v1/doc-1.4.0/mozart-stdlib/wp/qtk/html/node7.html)
-   Text1 Text2 E R Description=td(
-				  title: "Frequency count"
-				  entry(init:"type a word here"
-					handle:E
-					return:R
-					background:black
-					action:proc{$} {Show {String.toAtom {E get($)}}} {Text1 set(1:{String.toAtom {E get($)}})} end )
-				  lr(
-				     text(handle:Text1 width:28 height:5 background:white foreground:black wrap:word)
-				     button(text:"Match" action:Press)
-				     button(text:"Clean" action:Restart)
-				     )
-				  text(handle:Text2 width:28 height:5 background:black foreground:white glue:w wrap:word)
-				  action:proc{$}{Application.exit 0} end % quit app gracefully on window closing
-				  )
-   proc {Press} Inserted in
-      % {Dictionary.get D1 'make' D2}
-      Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
-      {Text2 set(1:Inserted)} % you can get/set text this way too
-   end
    
-   proc {Restart} Inserted in
-      Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
-      {Text1 set(1:"")}
-      {Text2 set(1:"...")} % you can get/set text this way too
-   end
     % Build the layout from the description
-   W={QTk.build Description}
-   {W show}
-   % {Text1 tk(insert 'end' {GetLine "tweets/part_1.txt" 1})}
-   {Text1 tk(insert 'end' {GetLine "tweets/part_1.txt" 1})}
-   {Text1 bind(event:"<Control-s>" action:Press)} % You can also bind events
 
 
 %%% Stock each lines of the file in a list and returns it, N = 1
@@ -330,7 +300,36 @@ define
       end
    end
       
-   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord Lock in
+   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord Lock
+      Text1 Text2 E R Description=td(
+				  title: "Frequency count"
+				  entry(init:"type a word here"
+					handle:E
+					return:R
+					background:black
+					action:proc{$} {Show {String.toAtom {E get($)}}} {Text1 set(1:{String.toAtom {E get($)}})} end )
+				  lr(
+				     text(handle:Text1 width:28 height:5 background:white foreground:black wrap:word)
+				     button(text:"Match" action:Press)
+				     button(text:"Clean" action:Restart)
+				     )
+				  text(handle:Text2 width:28 height:5 background:black foreground:white glue:w wrap:word)
+				  action:proc{$}{Application.exit 0} end % quit app gracefully on window closing
+				     )
+      proc {Press}
+	 Inserted in
+	 {Dictionary.get D1 'and' D2}
+	 Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
+	 {Text2 set(1:{GetHighestFreq D2})} % you can get/set text this way too
+      end
+      
+      proc {Restart}
+	 Inserted in
+	 Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
+	 {Text1 set(1:"")}
+	 {Text2 set(1:"...")} % you can get/set text this way too
+      end
+   in
       X = 1
       %I = {CorrectInput {VirtualString.toString 'tweets/part_'#X#'.txt'}}
 %%%% partie dico
@@ -396,6 +395,12 @@ define
       {Dictionary.get D1 'and' D2}
       {Browse {Dictionary.entries D2}}
       {Browse {GetHighestFreq D2}}
+
+      W={QTk.build Description}
+      {W show}
+   % {Text1 tk(insert 'end' {GetLine "tweets/part_1.txt" 1})}
+      {Text1 tk(insert 'end' {GetLine "tweets/part_1.txt" 1})}
+      {Text1 bind(event:"<Control-s>" action:Press)} % You can also bind events
    end   
 end
 
