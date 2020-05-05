@@ -98,7 +98,7 @@ define
 	 elseif H == 125 then
 	    46|{MakePoint T}
 	 else
-	    H|{MakePoint T}
+	   {Char.toLower H}|{MakePoint T}
 	 end
       else
 	 nil
@@ -144,23 +144,23 @@ define
    
 	 
    %%% Returns : the String without maj
-   fun {ToLower String}
-      case String of H|T then
-	 if {Char.isUpper H} then
-	    {Char.toLower H}|{ToLower T}
-	 else
-	    H|{ToLower T}
-	 end
-      [] nil then
-	 nil
-      end
-   end
+  % fun {ToLower String}
+ %     case String of H|T then
+%	 if {Char.isUpper H} then
+%	    {Char.toLower H}|{ToLower T}
+%	 else
+%	    H|{ToLower T}
+%	 end
+ %     [] nil then
+%	 nil
+   %   end
+  % end
 
 
 %%% Returns : 
    fun {FilterMaj File}
       case File of H|T then
-	 {Map H ToLower}|{FilterMaj T}
+	 {Map H toLower}|{FilterMaj T}
       end
    end
    
@@ -338,7 +338,7 @@ define
 	 case Word of H|T then
 	    if H == 10 then {GetWithoutBackSlash T}
 	    else
-	       H|{GetWithoutBackSlash T}
+	       {Char.toLower H}|{GetWithoutBackSlash T}
 	    end
 	 else
 	    nil
