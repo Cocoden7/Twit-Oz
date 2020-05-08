@@ -8,5 +8,11 @@ CorentinLeCrabe
 ArthuuuuuuuuuuuuuuuuuuuuuuuuuuuuRRRRRRrRRRrrrr
 - Faire le MakeFile
 - Faire le ReadMe
-- Créer l'interface 
+- Créer l'interface V
 (- Revoir les fonctions) 
+
+
+
+- Traiter le cas où le mot n'est pas trouvé (au lieu de faire crash le programme) 
+- Avoir plusieurs propositions de mots (genre les 3 premiers)
+- Traiter les 2-grammes ?

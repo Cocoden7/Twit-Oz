@@ -16,13 +16,6 @@ define
       {Reader.scan {New Reader.textfile init(name:IN_NAME)} I}
    end
 
-   
-%%% GUI
-    % Make the window description, all the parameters are explained here:
-    % http://mozart2.org/mozart-v1/doc-1.4.0/mozart-stdlib/wp/qtk/html/node7.html)
-   
-    % Build the layout from the description
-
 
 %%% Stock each lines of the file in a list and returns it, N = 1
    fun {ReadFile IN_NAME N}
@@ -33,83 +26,60 @@ define
       end
    end
 
-%%% Changes each ponctuation used for marking the end of a phrase by a point (46) in a line. Returns the new line.
-   fun {MakePoint Line}
-      case Line of H|T then
-	 % .
-	 if H == 46 then
-	    46|{MakePoint T}   
-	 elseif H == 46 andthen T.1 == 46 then
-	    46|{MakePoint T}
-	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 then
-	    46|{MakePoint T}
-	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 then
-	    46|{MakePoint T}
-	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 andthen T.2.2.2.1 == 46 then
-	    46|{MakePoint T}
-	    % !
-         elseif H == 33 then
-	    46|{MakePoint T}
-	 elseif H == 33 andthen T.1 == 33 then
-	    46|{MakePoint T}
-	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 then
-	    46|{MakePoint T}
-	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 then
-	    46|{MakePoint T}
-	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 andthen T.2.2.2.1 == 33 then
-	    46|{MakePoint T}
+
+%%% File is a list of lines. 
+%%% Returns : List of all the lines with only points (no ',' ';' '?' '!' ...)
+   fun {MakePointFromFile File}
+      local
+	 fun {MakePoint Line}
+	    case Line of H|T then
+	       if H == 46 then
+		  46|{MakePoint T}   
+	       elseif H == 46 andthen T.1 == 46 then
+		  46|{MakePoint T}
+	       elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 then
+		  46|{MakePoint T}
+	       elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 then
+		  46|{MakePoint T}
+	       elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 andthen T.2.2.2.1 == 46 then
+		  46|{MakePoint T}
+	       elseif H == 33 then
+		  46|{MakePoint T}
+	       elseif H == 33 andthen T.1 == 33 then
+		  46|{MakePoint T}
+	       elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 then
+		  46|{MakePoint T}
+	       elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 then
+		  46|{MakePoint T}
+	       elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 andthen T.2.2.2.1 == 33 then
+		  46|{MakePoint T}
 	    % ?
-	 elseif H == 63 then
-	    46|{MakePoint T}
-	    % "
-	 elseif H == 34 then
-	    46|{MakePoint T}
-	    % #
-	 elseif H == 35 then
-	    46|{MakePoint T}
-	    % (
-	 elseif H == 40 then
-	    46|{MakePoint T}
-	    % )
-	 elseif H == 41 then
-	    46|{MakePoint T}
-	    % *
-	 elseif H == 42 then
-	    46|{MakePoint T}
-	    % :
-	 elseif H == 58 then
-	    46|{MakePoint T}
-	    % ;
-	 elseif H == 59 then
-	    46|{MakePoint T}
-	    % @
-	 elseif H == 64 then
-	    46|{MakePoint T}
-	    % [
-	 elseif H == 91 then
-	    46|{MakePoint T}
-	    % ]
-	 elseif H == 93 then
-	    46|{MakePoint T}
-	    % {
-	 elseif H == 123 then
-	    46|{MakePoint T}
-	    % }
-	 elseif H == 125 then
-	    46|{MakePoint T}
-	 else
-	    H|{MakePoint T}
+	       elseif H == 63 orelse H == 34 orelse H == 35 orelse H == 40 orelse H == 41 orelse H == 42 orelse H == 58
+		  orelse H == 59 orelse H == 64 orelse H == 91 orelse H == 123 orelse H == 125 then
+		  46|{MakePoint T}
+	       else
+		  H|{MakePoint T}
+	       end
+	    else
+	       nil
+	    end
 	 end
-      else
-	 nil
+      in
+	 case File of L1|L2 then
+	    {MakePoint L1}|{MakePointFromFile L2}	 
+	 else
+	    nil
+	 end
       end
    end
 
- %%% Returns : File is a list of lines. List of all the lines with only points (no ',' ';' '?' '!' ...) 
-   fun {MakePointFromFile File}
-      case File of L1|L2 then
-	 {MakePoint L1}|{MakePointFromFile L2}	 
-      else
+%%% File : list of lines with only points (output of MakePointFromFile)
+%%% Returns : Split each lines by '.' and returns each phrases in a list
+   % example : ["salut iohef. duzgfzn eofn.foehiuh." "jizfioi. ziofhoifhnz. ofehiufh."] -> ["salut iohef" "duzgfzn eofn" "..."]
+   fun {FileToPhrase File}
+      case File of H|T then
+	 {Append {String.tokens H 46} {FileToPhrase T}}
+      [] nil then
 	 nil
       end
    end
@@ -132,44 +102,36 @@ define
       end
    end
    
-
-   %["salut iohef. duzgfzn eofn.foehiuh." "jizfioi. ziofhoifhnz. ofehiufh."] -> ["salut iohef" "duzgfzn eofn" "..."]
-   fun {FileToPhrase File}
-      case File of H|T then
-	 {Append {GetWords H 46} {FileToPhrase T}}
-      [] nil then
-	 nil
-      end
-   end
    
-	 
-   %%% Returns : the String without maj
-   fun {ToLower String}
-      case String of H|T then
-	 if {Char.isUpper H} then
-	    {Char.toLower H}|{ToLower T}
-	 else
-	    H|{ToLower T}
-	 end
-      [] nil then
-	 nil
-      end
-   end
-
-
-%%% Returns : 
+%%% File : list of lines
+%%% Returns : the list of lines without capital letters
    fun {FilterMaj File}
-      case File of H|T then
-	 {Map H ToLower}|{FilterMaj T}
+      local
+	 fun {ToLower String}
+	    case String of H|T then
+	       if {Char.isUpper H} then
+		  {Char.toLower H}|{ToLower T}
+	       else
+		  H|{ToLower T}
+	       end
+	    else 
+	       nil
+	    end
+	 end
+      in
+	 case File of H|T then
+	    {Map H ToLower}|{FilterMaj T}
+	 else
+	    nil
+	 end
       end
    end
    
-
    % Faire un ToLower !
    % File : name of the file 
    % Returns : a list of phrases from the file
    fun {CorrectInput File}
-      {FileToPhrase {MakePointFromFile {ReadFile File 1}}}
+       {FileToPhrase {MakePointFromFile {ReadFile File 1}}}
    end
 
 %%%%%%%%%%%%%%%%%%%% Dictionary part %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -190,12 +152,12 @@ define
 	 case T of nil then
 	    skip
 	 else
-	    if {Contains Dico {StringToAtom H}} then % regarde si H est déjà une clé dans le gros dico
+	    if {Contains Dico {StringToAtom H}} then
 	       local ValueDico Freq in
 		  {Dictionary.get Dico {StringToAtom H} ValueDico}
-		  if {Contains ValueDico {StringToAtom T.1}} then % regarde si T est déjà associé à H
+		  if {Contains ValueDico {StringToAtom T.1}} then % regarde si T.1 (le mot juste apres )H est deja associe a H
 		     {Dictionary.get ValueDico {StringToAtom T.1} Freq}
-		     {Dictionary.put ValueDico {StringToAtom T.1} Freq+1} % à vérifier que ça ne crée pas de nouvelle clé
+		     {Dictionary.put ValueDico {StringToAtom T.1} Freq+1} % On ajoute 1 a la freq
 		  else % si T n'a encore jamais �t� vu apr�s H 
 		     {Dictionary.put ValueDico {StringToAtom T.1} 1}
 		  end
@@ -208,7 +170,6 @@ define
 	       end
 	    end
 	    {CreateRec T Dico}	    
-	    %{Dictionary.put Dico {StringToAtom {ToLower {Filter H}}} {StringToAtom {ToLower {Filter T.1}}}}
 	 end
       [] nil then
 	 skip
@@ -216,39 +177,15 @@ define
    end
    
    
-   proc {Consumer File}
-      case File of H|T then	 
-	 {Browse {StringToAtom H}} {Consumer T}
-      else
-	 skip
-      end
-   end
-   
-%%% Producer : Take the tweet files between Count and Val and merge them together in a list
+%%% Producer : Take the tweet files between Count and Val, apply CorrectInput and merge them together in a list
    fun {Prod Count Val}
-      %{Delay 5000}
       if Count < Val+1 then
-	 % {Append {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}} {Prod Count+1 Val}}
 	  {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}}|{Prod Count+1 Val}
       else
 	 nil
       end
    end
 
-
-   proc {Browser1 Files}
-      case Files of S1|S2 then
-	 {Browser2 S1} {Browser1 S2}
-      else
-	 skip
-      end
-   end
-
-   proc {Browser2 File}
-      case File of H|T then
-	 {Browse {StringToAtom H}} {Browser2 T}
-      end
-   end
 
 %%% ListFile : List of phrases
 %%% Returns : Dic(word1:Dic1(word2:2 word19:4...) word2:Dic2(word3:2 word78:5...) word3:Dic3(word4:3 word8:1...) ...) with all the words 
@@ -264,15 +201,39 @@ define
    end
    
    proc {DicoFromFiles Files Dico Lock}
-      
-      case Files of S1|S2 then
-	 {DicoFromFile S1 Dico Lock} {DicoFromFiles S2 Dico Lock}
-      else
-	 skip
+      local
+	 proc {DicoFromFile ListFile Dico Lock}
+	    case ListFile of H|T then
+	       lock Lock then
+		  {CreateRec {GetWords H 32} Dico}
+		  {DicoFromFile T Dico Lock}
+	       end	 
+	    else
+	       skip
+	    end
+	 end
+      in
+	 case Files of S1|S2 then
+	    {DicoFromFile S1 Dico Lock} {DicoFromFiles S2 Dico Lock}
+	 else
+	    skip
+	 end
       end
    end
 
+   %%% Get keys in Dico and stock it in R
+   proc {DicoGetter Dico Key R}
+      local B in
+	 {Dictionary.member Dico Key B}
+	 if B then
+	    {Dictionary.get Dico Key R}
+	 else
+	    R = "Can't find this word"
+	 end
+      end
+   end
 
+	 
 %%%%%%%%%% Get best word part %%%%%%%%%%%%%%%%
 
 
@@ -301,6 +262,12 @@ define
    end
       
    local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord Lock
+         
+%%% GUI
+    % Make the window description, all the parameters are explained here:
+    % http://mozart2.org/mozart-v1/doc-1.4.0/mozart-stdlib/wp/qtk/html/node7.html)
+   
+    % Build the layout from the description
       Text1 Text2 E R Description=td(
 				  title: "Frequency count"
 				  entry(init:"type a word here"
@@ -319,10 +286,13 @@ define
       proc {Press}
 	 Inserted D5 in
 	 Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
-	 %{Browse {GetLastWordOfPhrase {GetWords Inserted 32}}}
-	 {Dictionary.get D1 {StringToAtom {GetLastWordOfPhrase {GetWords Inserted 32}}} D5}
-	 
-	 {Text2 set(1:{GetHighestFreq D5})} % you can get/set text this way too
+	 %{Dictionary.get D1 {StringToAtom {GetLastWordOfPhrase {String.tokens Inserted 32}}} D5}
+	 {DicoGetter D1 {StringToAtom {GetLastWordOfPhrase {String.tokens Inserted 32}}} D5}
+	 if {IsDictionary D5} then
+	    {Text2 set(1:{GetHighestFreq D5})} % you can get/set text this way too
+	 else
+	    {Text2 set(1:D5)}
+	 end
       end
 
       fun {GetLastWordOfPhrase ListOfWord}
@@ -372,17 +342,17 @@ define
       
 %%% Threads for reading %%%
       thread
-	 L1 = {Prod 1 1}
+	 L1 = {Prod 1 2}
 	 % {Browser1 L1}
       end
       thread
-	 L2 = {Prod 2 2}
+	 L2 = {Prod 3 4}
       end
       thread
-	 L3 = {Prod 3 3}
+	 L3 = {Prod 5 6}
        end
       thread
-	 L4 = {Prod 4 4}
+	 L4 = {Prod 7 8}
       end
 
 %%% Threads for parsing %%%
@@ -416,9 +386,9 @@ define
       {Wait C}
       {Wait D}
       {Browse {Dictionary.entries D1}}
-      {Dictionary.get D1 'and' D2}
-      {Browse {Dictionary.entries D2}}
-      {Browse {GetHighestFreq D2}}
+      %{Dictionary.get D1 'Africa' D2}
+      %{Browse {Dictionary.entries D2}}
+      %{Browse {GetHighestFreq D2}}
 
       W={QTk.build Description}
       {W show}
