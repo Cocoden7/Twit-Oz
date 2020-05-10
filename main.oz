@@ -126,6 +126,18 @@ define
 	 end
       end
    end
+
+   fun {ToLower String}
+      case String of H|T then
+	 if {Char.isUpper H} then
+	    {Char.toLower H}|{ToLower T}
+	 else
+	    H|{ToLower T}
+	 end
+      else 
+	 nil
+      end
+   end
    
    % Faire un ToLower !
    % File : name of the file 
@@ -287,7 +299,7 @@ define
 	 Inserted D5 in
 	 Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
 	 %{Dictionary.get D1 {StringToAtom {GetLastWordOfPhrase {String.tokens Inserted 32}}} D5}
-	 {DicoGetter D1 {StringToAtom {GetLastWordOfPhrase {String.tokens Inserted 32}}} D5}
+	 {DicoGetter D1 {StringToAtom  {ToLower {GetLastWordOfPhrase {String.tokens Inserted 32}}}} D5}
 	 if {IsDictionary D5} then
 	    {Text2 set(1:{GetHighestFreq D5})} % you can get/set text this way too
 	 else
