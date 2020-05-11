@@ -187,7 +187,39 @@ define
 	 skip
       end
    end
-   
+
+   proc {CreateRec2 WordsList Dico} % attention, faut créer un dico avec les 1 uples et les 2 uples mais qu'on peut mtn mieux découper en threads ?
+      case WordsList of H|T then
+	 case T of nil then
+	    skip
+	 else
+	    case T.2.1 of nil then % si le 3 ème mot est nil alors ça sert à rien
+	       skip
+	    else
+	       if {Contains Dico {Append {Append {StringToAtom H} ' '} T}} then % faire une association de H et T (bon comme ça ?)
+		  local ValueDico Freq in
+		     {Dictionary.get Dico {Append {Append {StringToAtom H} ' '} T} ValueDico}
+		     if {Contains ValueDico {StringToAtom T.2.1}} then % regarde si T.2.1 (le mot juste apres T) est deja associe a H' 'T
+			{Dictionary.get ValueDico {StringToAtom T.2.1} Freq}
+			{Dictionary.put ValueDico {StringToAtom T.2.1} Freq+1} % On ajoute 1 a la freq
+		     else % si T.2.1 n'a encore jamais été vu après T 
+			{Dictionary.put ValueDico {StringToAtom T.2.1} 1}
+		     end
+		  end
+	       else
+		  local ValueDico in
+		     {Dictionary.new ValueDico}
+		     {Dictionary.put ValueDico {StringToAtom T.2.1} 1}
+		     {Dictionary.put Dico {Append {Append {StringToAtom H} ' '} T} ValueDico}
+		  end
+	       end
+	       {CreateRec2 T Dico}
+	    end
+	 end
+      [] nil then
+	 skip
+      end
+   end   
    
 %%% Producer : Take the tweet files between Count and Val, apply CorrectInput and merge them together in a list
    fun {Prod Count Val}
@@ -273,7 +305,7 @@ define
       end
    end
       
-   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord Lock
+   local Uple Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord Lock
          
 %%% GUI
     % Make the window description, all the parameters are explained here:
@@ -336,6 +368,10 @@ define
 	 {Text2 set(1:"...")} % you can get/set text this way too
       end
    in
+      % define if we make 1 uple or 2 uple dictionary
+      Uple = 1
+
+      
       X = 1
       %I = {CorrectInput {VirtualString.toString 'tweets/part_'#X#'.txt'}}
 %%%% partie dico
@@ -384,14 +420,23 @@ define
 	 {Browse 2}
       end
       thread
-	 {DicoFromFiles L3 D1 Lock}
-	 C = 1
-	 {Browse 3}
+	 if Uple == 1 then
+	    {DicoFromFiles L3 D1 Lock}
+	    C = 1
+	    {Browse 3}
+	 elseif Uple == 2 then
+	    skip
+	 end
+	 
       end
       thread
+	 if Uple == 1 then
 	 {DicoFromFiles L4 D1 Lock}
 	 D = 1
-	 {Browse 4}
+	    {Browse 4}
+	 elseif Uple == 2 then
+	    skip
+	 end
       end
       {Wait A}
       {Wait B}
