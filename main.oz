@@ -106,27 +106,14 @@ define
 %%% File : list of lines
 %%% Returns : the list of lines without capital letters
    fun {FilterMaj File}
-      local
-	 fun {ToLower String}
-	    case String of H|T then
-	       if {Char.isUpper H} then
-		  {Char.toLower H}|{ToLower T}
-	       else
-		  H|{ToLower T}
-	       end
-	    else 
-	       nil
-	    end
-	 end
-      in
-	 case File of H|T then
-	    {Map H ToLower}|{FilterMaj T}
-	 else
-	    nil
-	 end
+      case File of H|T then
+	 {Map H Char.toLower}|{FilterMaj T}
+      else
+	 nil
       end
    end
-
+   
+%%% Returns : the String without capital letters
    fun {ToLower String}
       case String of H|T then
 	 if {Char.isUpper H} then
@@ -143,7 +130,7 @@ define
    % File : name of the file 
    % Returns : a list of phrases from the file
    fun {CorrectInput File}
-       {FileToPhrase {MakePointFromFile {ReadFile File 1}}}
+       {FilterMaj {FileToPhrase {MakePointFromFile {ReadFile File 1}}}}
    end
 
 %%%%%%%%%%%%%%%%%%%% Dictionary part %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -157,7 +144,7 @@ define
    end
 
 
-%%% WordsList : a list of words.
+%%% WordsList : a list of wonrds.
 %%% Returns : Dic(word1:Dic(word2:1, word57:2...) word2:Dic(word3:2, word45:3...)...) 
    proc {CreateRec WordsList Dico}
       case WordsList of H|T then
@@ -292,7 +279,7 @@ define
    end
    
    
-%%% Returns the index of the max of a list L (I = 1, Max = 0)
+%%% Returns the index of the max of a list L (I = 1, Maxi = 0)
    fun {Max L I IMax Maxi}
       case L of H|T then
 	 if H > Maxi then
@@ -305,7 +292,7 @@ define
       end
    end
       
-   local Uple Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord Lock
+   local Uple Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 L5 L6 L7 L8 D1 D2 D3 D4 A B C D BestWord Lock
          
 %%% GUI
     % Make the window description, all the parameters are explained here:
@@ -339,6 +326,7 @@ define
 	 end
       end
 
+%%% Returns : the last word of ListOfWord
       fun {GetLastWordOfPhrase ListOfWord}
 	 case ListOfWord of H|T then
 	    if T == nil then {GetWithoutBackSlash H}
@@ -348,6 +336,7 @@ define
 	 end
       end
 
+%%% Removes '\n'
       fun {GetWithoutBackSlash Word}
 	 case Word of H|T then
 	    if H == 10 then {GetWithoutBackSlash T}
@@ -390,17 +379,30 @@ define
       
 %%% Threads for reading %%%
       thread
-	 L1 = {Prod 1 2}
+	 L1 = {Prod 1 26}
 	 % {Browser1 L1}
       end
       thread
-	 L2 = {Prod 3 4}
+	 L2 = {Prod 27 52}
       end
       thread
-	 L3 = {Prod 5 6}
+	 L3 = {Prod 53 78}
        end
       thread
-	 L4 = {Prod 7 8}
+	 L4 = {Prod 79 104}
+      end
+      thread
+	 L5 = {Prod 105 130}
+	 % {Browser1 L1}
+      end
+      thread
+	 L6 = {Prod 131 156}
+      end
+      thread
+	 L7 = {Prod 157 182}
+       end
+      thread
+	 L8 = {Prod 183 208}
       end
 
 %%% Threads for parsing %%%
@@ -408,31 +410,38 @@ define
       thread
 	 % {Browser1 L1}
 	 {DicoFromFiles L1 D1 Lock}
+	 {DicoFromFiles L2 D1 Lock}
+	 {DicoFromFiles L3 D1 Lock}
+	 {DicoFromFiles L4 D1 Lock}
+	 {DicoFromFiles L5 D1 Lock}
+	 {DicoFromFiles L6 D1 Lock}
+	 {DicoFromFiles L7 D1 Lock}
+	 {DicoFromFiles L8 D1 Lock}
 	 A = 1
 	 {Browse 1}
 	 %{Browse {Dictionary.entries D1}}
 	 %{Dictionary.get Dico 'and' Dico2}
 	 %{Browse {Dictionary.entries Dico2}}
       end
-      thread
-	 {DicoFromFiles L2 D1 Lock}
-	 B = 1
-	 {Browse 2}
-      end
-      thread
-	 {DicoFromFiles L3 D1 Lock}
-	 C = 1
-	 {Browse 3}
-      end
-      thread
-	 {DicoFromFiles L4 D1 Lock}
-	 D = 1
-	 {Browse 4}
-      end
+ %     thread
+%	 {DicoFromFiles L2 D1 Lock}
+%	 B = 1
+%	 {Browse 2}
+  %    end
+ %     thread
+%	 {DicoFromFiles L3 D1 Lock}
+%	 C = 1
+%	 {Browse 3}
+  %    end
+ %     thread
+%	 {DicoFromFiles L4 D1 Lock}
+%	 D = 1
+%	 {Browse 4}
+      %end
       {Wait A}
-      {Wait B}
-      {Wait C}
-      {Wait D}
+      %{Wait B}
+      %{Wait C}
+      %{Wait D}
       {Browse {Dictionary.entries D1}}
       %{Dictionary.get D1 'Africa' D2}
       %{Browse {Dictionary.entries D2}}

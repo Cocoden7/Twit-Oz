@@ -53,6 +53,7 @@ define
 		  46|{MakePoint T}
 	       elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 andthen T.2.2.2.1 == 33 then
 		  46|{MakePoint T}
+	    % ?
 	       elseif H == 63 orelse H == 34 orelse H == 35 orelse H == 40 orelse H == 41 orelse H == 42 orelse H == 58
 		  orelse H == 59 orelse H == 64 orelse H == 91 orelse H == 123 orelse H == 125 then
 		  46|{MakePoint T}
@@ -105,24 +106,23 @@ define
 %%% File : list of lines
 %%% Returns : the list of lines without capital letters
    fun {FilterMaj File}
-      local
-	 fun {ToLower String}
-	    case String of H|T then
-	       if {Char.isUpper H} then
-		  {Char.toLower H}|{ToLower T}
-	       else
-		  H|{ToLower T}
-	       end
-	    else 
-	       nil
-	    end
-	 end
-      in
-	 case File of H|T then
-	    {Map H ToLower}|{FilterMaj T}
+      case File of H|T then
+	 {Map H Char.toLower}|{FilterMaj T}
+      else
+	 nil
+      end
+   end
+   
+%%% Returns : the String without capital letters
+   fun {ToLower String}
+      case String of H|T then
+	 if {Char.isUpper H} then
+	    {Char.toLower H}|{ToLower T}
 	 else
-	    nil
+	    H|{ToLower T}
 	 end
+      else 
+	 nil
       end
    end
    
@@ -130,7 +130,7 @@ define
    % File : name of the file 
    % Returns : a list of phrases from the file
    fun {CorrectInput File}
-       {FileToPhrase {MakePointFromFile {ReadFile File 1}}}
+       {FilterMaj {FileToPhrase {MakePointFromFile {ReadFile File 1}}}}
    end
 
 %%%%%%%%%%%%%%%%%%%% Dictionary part %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -144,7 +144,7 @@ define
    end
 
 
-%%% WordsList : a list of words.
+%%% WordsList : a list of wonrds.
 %%% Returns : Dic(word1:Dic(word2:1, word57:2...) word2:Dic(word3:2, word45:3...)...) 
    proc {CreateRec WordsList Dico}
       case WordsList of H|T then
@@ -174,7 +174,39 @@ define
 	 skip
       end
    end
-   
+
+   proc {CreateRec2 WordsList Dico} % attention, faut créer un dico avec les 1 uples et les 2 uples mais qu'on peut mtn mieux découper en threads ?
+      case WordsList of H|T then
+	 case T of nil then
+	    skip
+	 else
+	    case T.2.1 of nil then % si le 3 ème mot est nil alors ça sert à rien
+	       skip
+	    else
+	       if {Contains Dico {Append {Append {StringToAtom H} ' '} T}} then % faire une association de H et T (bon comme ça ?)
+		  local ValueDico Freq in
+		     {Dictionary.get Dico {Append {Append {StringToAtom H} ' '} T} ValueDico}
+		     if {Contains ValueDico {StringToAtom T.2.1}} then % regarde si T.2.1 (le mot juste apres T) est deja associe a H' 'T
+			{Dictionary.get ValueDico {StringToAtom T.2.1} Freq}
+			{Dictionary.put ValueDico {StringToAtom T.2.1} Freq+1} % On ajoute 1 a la freq
+		     else % si T.2.1 n'a encore jamais été vu après T 
+			{Dictionary.put ValueDico {StringToAtom T.2.1} 1}
+		     end
+		  end
+	       else
+		  local ValueDico in
+		     {Dictionary.new ValueDico}
+		     {Dictionary.put ValueDico {StringToAtom T.2.1} 1}
+		     {Dictionary.put Dico {Append {Append {StringToAtom H} ' '} T} ValueDico}
+		  end
+	       end
+	       {CreateRec2 T Dico}
+	    end
+	 end
+      [] nil then
+	 skip
+      end
+   end   
    
 %%% Producer : Take the tweet files between Count and Val, apply CorrectInput and merge them together in a list
    fun {Prod Count Val}
@@ -247,7 +279,7 @@ define
    end
    
    
-%%% Returns the index of the max of a list L (I = 1, Max = 0)
+%%% Returns the index of the max of a list L (I = 1, Maxi = 0)
    fun {Max L I IMax Maxi}
       case L of H|T then
 	 if H > Maxi then
@@ -260,7 +292,7 @@ define
       end
    end
       
-   local Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 D1 D2 D3 D4 A B C D BestWord Lock
+   local Uple Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 L5 L6 L7 L8 D1 D2 D3 D4 A B C D BestWord Lock T1 T2 T3 T4
          
 %%% GUI
     % Make the window description, all the parameters are explained here:
@@ -286,7 +318,7 @@ define
 	 Inserted D5 in
 	 Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
 	 %{Dictionary.get D1 {StringToAtom {GetLastWordOfPhrase {String.tokens Inserted 32}}} D5}
-	 {DicoGetter D1 {StringToAtom {GetLastWordOfPhrase {String.tokens Inserted 32}}} D5}
+	 {DicoGetter D1 {StringToAtom  {ToLower {GetLastWordOfPhrase {String.tokens Inserted 32}}}} D5}
 	 if {IsDictionary D5} then
 	    {Text2 set(1:{GetHighestFreq D5})} % you can get/set text this way too
 	 else
@@ -294,6 +326,7 @@ define
 	 end
       end
 
+%%% Returns : the last word of ListOfWord
       fun {GetLastWordOfPhrase ListOfWord}
 	 case ListOfWord of H|T then
 	    if T == nil then {GetWithoutBackSlash H}
@@ -303,7 +336,7 @@ define
 	 end
       end
 
-      %%% Removes the \n
+%%% Removes '\n'
       fun {GetWithoutBackSlash Word}
 	 case Word of H|T then
 	    if H == 10 then {GetWithoutBackSlash T}
@@ -324,6 +357,10 @@ define
 	 {Text2 set(1:"...")} % you can get/set text this way too
       end
    in
+      % define if we make 1 uple or 2 uple dictionary
+      Uple = 1
+
+      
       X = 1
       %I = {CorrectInput {VirtualString.toString 'tweets/part_'#X#'.txt'}}
 %%%% partie dico
@@ -342,17 +379,27 @@ define
       
 %%% Threads for reading %%%
       thread
-	 L1 = {Prod 1 2}
-	 % {Browser1 L1}
+	 L1 = {Prod 1 52}
+	 T1 = 1
       end
       thread
-	 L2 = {Prod 3 4}
+	 L2 = {Prod 53 104}
+	 T2 = 2
       end
       thread
-	 L3 = {Prod 5 6}
+	 L3 = {Prod 105 156}
+	 T3 = 3
        end
       thread
-	 L4 = {Prod 7 8}
+	 L4 = {Prod 157 208}
+	 T4 = 4
+      end
+      thread
+	 {Wait T1}
+	 {Wait T2}
+	 {Wait T3}
+	 {Wait T4}
+	 {Browse {StringToAtom "Lecture finie"}}
       end
 
 %%% Threads for parsing %%%
@@ -360,31 +407,34 @@ define
       thread
 	 % {Browser1 L1}
 	 {DicoFromFiles L1 D1 Lock}
+	 {DicoFromFiles L2 D1 Lock}
+	 {DicoFromFiles L3 D1 Lock}
+	 {DicoFromFiles L4 D1 Lock}
 	 A = 1
 	 {Browse 1}
 	 %{Browse {Dictionary.entries D1}}
 	 %{Dictionary.get Dico 'and' Dico2}
 	 %{Browse {Dictionary.entries Dico2}}
       end
-      thread
-	 {DicoFromFiles L2 D1 Lock}
-	 B = 1
-	 {Browse 2}
-      end
-      thread
-	 {DicoFromFiles L3 D1 Lock}
-	 C = 1
-	 {Browse 3}
-      end
-      thread
-	 {DicoFromFiles L4 D1 Lock}
-	 D = 1
-	 {Browse 4}
-      end
+ %     thread
+%	 {DicoFromFiles L2 D1 Lock}
+%	 B = 1
+%	 {Browse 2}
+  %    end
+ %     thread
+%	 {DicoFromFiles L3 D1 Lock}
+%	 C = 1
+%	 {Browse 3}
+  %    end
+ %     thread
+%	 {DicoFromFiles L4 D1 Lock}
+%	 D = 1
+%	 {Browse 4}
+      %end
       {Wait A}
-      {Wait B}
-      {Wait C}
-      {Wait D}
+      %{Wait B}
+      %{Wait C}
+      %{Wait D}
       {Browse {Dictionary.entries D1}}
       %{Dictionary.get D1 'Africa' D2}
       %{Browse {Dictionary.entries D2}}
