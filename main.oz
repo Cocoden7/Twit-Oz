@@ -420,23 +420,14 @@ define
 	 {Browse 2}
       end
       thread
-	 if Uple == 1 then
-	    {DicoFromFiles L3 D1 Lock}
-	    C = 1
-	    {Browse 3}
-	 elseif Uple == 2 then
-	    skip
-	 end
-	 
+	 {DicoFromFiles L3 D1 Lock}
+	 C = 1
+	 {Browse 3}
       end
       thread
-	 if Uple == 1 then
 	 {DicoFromFiles L4 D1 Lock}
 	 D = 1
-	    {Browse 4}
-	 elseif Uple == 2 then
-	    skip
-	 end
+	 {Browse 4}
       end
       {Wait A}
       {Wait B}
