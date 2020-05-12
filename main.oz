@@ -6,6 +6,7 @@ import
    OS
    Browser
    Reader
+   Open
 define
 %%% Easier macros for imported functions
    Browse = Browser.browse
@@ -27,61 +28,62 @@ define
    end
 
 
-%%% File is a list of lines. 
+%%% File is a string of lines. 
 %%% Returns : List of all the lines with only points (no ',' ';' '?' '!' ...)
    fun {MakePointFromFile File}
-      local
-	 fun {MakePoint Line}
-	    case Line of H|T then
-	       if H == 46 then
-		  46|{MakePoint T}   
-	       elseif H == 46 andthen T.1 == 46 then
-		  46|{MakePoint T}
-	       elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 then
-		  46|{MakePoint T}
-	       elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 then
-		  46|{MakePoint T}
-	       elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 andthen T.2.2.2.1 == 46 then
-		  46|{MakePoint T}
-	       elseif H == 33 then
-		  46|{MakePoint T}
-	       elseif H == 33 andthen T.1 == 33 then
-		  46|{MakePoint T}
-	       elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 then
-		  46|{MakePoint T}
-	       elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 then
-		  46|{MakePoint T}
-	       elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 andthen T.2.2.2.1 == 33 then
-		  46|{MakePoint T}
+      %local
+	 %fun {MakePoint Line}
+      case File of H|T then
+	 if H == 46 then
+	    46|{MakePointFromFile T}   
+	 elseif H == 46 andthen T.1 == 46 then
+	    46|{MakePointFromFile T}
+	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 then
+	    46|{MakePointFromFile T}
+	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 then
+	    46|{MakePointFromFile T}
+	 elseif H == 46 andthen T.1 == 46 andthen T.2.1 == 46 andthen T.2.2.1 == 46 andthen T.2.2.2.1 == 46 then
+	    46|{MakePointFromFile T}
+	 elseif H == 33 then
+	    46|{MakePointFromFile T}
+	 elseif H == 33 andthen T.1 == 33 then
+	    46|{MakePointFromFile T}
+	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 then
+	    46|{MakePointFromFile T}
+	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 then
+	    46|{MakePointFromFile T}
+	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 andthen T.2.2.2.1 == 33 then
+	    46|{MakePointFromFile T}
 	    % ?
-	       elseif H == 63 orelse H == 34 orelse H == 35 orelse H == 40 orelse H == 41 orelse H == 42 orelse H == 58
-		  orelse H == 59 orelse H == 64 orelse H == 91 orelse H == 123 orelse H == 125 then
-		  46|{MakePoint T}
-	       else
-		  H|{MakePoint T}
-	       end
-	    else
-	       nil
-	    end
-	 end
-      in
-	 case File of L1|L2 then
-	    {MakePoint L1}|{MakePointFromFile L2}	 
+	 elseif H == 63 orelse H == 34 orelse H == 35 orelse H == 40 orelse H == 41 orelse H == 42 orelse H == 58
+	    orelse H == 59 orelse H == 64 orelse H == 91 orelse H == 123 orelse H == 125 then
+	    46|{MakePointFromFile T}
 	 else
-	    nil
+	    H|{MakePointFromFile T}
 	 end
+      else
+	 nil
       end
+	 %end
+      %in
+%	 case File of L1|L2 then
+%	    {MakePoint L1}|{MakePointFromFile L2}	 
+%	 else
+%	    nil
+%	 end
+      %end
    end
 
 %%% File : list of lines with only points (output of MakePointFromFile)
 %%% Returns : Split each lines by '.' and returns each phrases in a list
    % example : ["salut iohef. duzgfzn eofn.foehiuh." "jizfioi. ziofhoifhnz. ofehiufh."] -> ["salut iohef" "duzgfzn eofn" "..."]
    fun {FileToPhrase File}
-      case File of H|T then
-	 {Append {String.tokens H 46} {FileToPhrase T}}
-      [] nil then
-	 nil
-      end
+ %     case File of H|T then
+%	 {Append {String.tokens File 46} {FileToPhrase T}}
+ %     [] nil then
+%	 nil
+      %end
+      {String.tokens File 46}
    end
    
 %%% Split the phrase by Char (point = 46)
@@ -130,7 +132,13 @@ define
    % File : name of the file 
    % Returns : a list of phrases from the file
    fun {CorrectInput File}
-       {FilterMaj {FileToPhrase {MakePointFromFile {ReadFile File 1}}}}
+      local F String in
+	 F={New Open.file init(name:File flags:[read])}
+	 {F read(list:String size:all)}
+	 {F close}
+	 %{FilterMaj {FileToPhrase {MakePointFromFile {F read(list:{Browse} size:all)}}}}
+	 {FilterMaj {FileToPhrase {MakePointFromFile String}}}
+      end
    end
 
 %%%%%%%%%%%%%%%%%%%% Dictionary part %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -211,6 +219,7 @@ define
 %%% Producer : Take the tweet files between Count and Val, apply CorrectInput and merge them together in a list
    fun {Prod Count Val}
       if Count < Val+1 then
+	 {Browse Count}
 	  {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}}|{Prod Count+1 Val}
       else
 	 nil
@@ -379,23 +388,54 @@ define
       
 %%% Threads for reading %%%
       {NewLock Lock}
+
+      
+      % quand on lit tout les fichiers avec 1 thread et un dico from files : 1:50
+      % moitié des fichiers avec 1 thread et un dico from files : 1:08
+      % quand on lit tout les fichiers avec 2 threads et 2 dico from files : 1:48 = 1:50
+      % quand on lit tout les fichiers avec 2 threads et 1 dico pour la moitié des fichiers : le 2ème thread avec dico à terminé à 1:20, celui sans dico (le premier) a terminé à 1:50
+      % tout les fichiers, 2 threads, dico pour chaque moitié : 1:20 pour le 2ème, 1:50 pour le premier
+      % tout les fichiers, 2 threads, pas de dico : 0:58 pour le 2ème, 1:28 ou 18 pour le premier
+      
+      % pour la moitié des fichiers, pas de dico (thread1) => 50 sec
+      % pour l'autre moitié des fichiers, pas de dico (thread 2) => 30 secondes
+      % la lecture à quand même pas mal l'air de s'additionner ... faut créer des locals ?
+
+
+
+      % 1 thread, tout lu pas de dico from files : 1:38
+
       thread
-	 L1 = {Prod 1 208}
+	 L1 = {Prod 1 52}
 	 {DicoFromFiles L1 D1 Lock}
+	 {Browse 1}
 	 T1 = 1
       end
- %     thread
-%	 L2 = {Prod 105 208}
-%	 {DicoFromFiles L2 D1 Lock}
-%	 T2 = 2
-      %end
+      thread
+	 L2 = {Prod 53 104}
+	 {DicoFromFiles L2 D1 Lock}
+	 {Browse 2}
+	 T2 = 2
+      end
+      thread
+	 L3 = {Prod 105 156}
+	 {DicoFromFiles L3 D1 Lock}
+	 {Browse 3}
+	 T3 = 3
+      end
+      thread
+	 L4 = {Prod 157 208}
+	 {DicoFromFiles L4 D1 Lock}
+	 {Browse 4}
+	 T4 = 4
+      end
      
      % thread
       {Browse {StringToAtom "Lecture commence"}}
       {Wait T1}
-      %{Wait T2}
-      %{Wait T3}
-      %{Wait T4}
+      {Wait T2}
+      {Wait T3}
+      {Wait T4}
       {Browse {StringToAtom "Lecture finie"}}
       %end
 
@@ -430,7 +470,7 @@ define
       %{Wait A}
       %{Wait B}
   %    {Wait C}
-      {Browse {StringToAtom "Dico fini"}}
+     % {Browse {StringToAtom "Dico fini"}}
   %    {Wait D}
       %{Browse {Dictionary.entries D1}}
       %{Dictionary.get D1 'Africa' D2}
