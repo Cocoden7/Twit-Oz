@@ -1,35 +1,21 @@
 functor
 import
    QTk at 'x-oz://system/wp/QTk.ozf'
-   System
+   %System
    Application
-   OS
+   %OS
    Browser
-   Reader
+   %Reader
    Open
 define
 %%% Easier macros for imported functions
    Browse = Browser.browse
-   Show = System.show
+   %Show = System.show
    
-%%% Read Ith line (un peu useless)
-   fun {GetLine IN_NAME I}
-      {Reader.scan {New Reader.textfile init(name:IN_NAME)} I}
-   end
 
 
-%%% Stock each lines of the file in a list and returns it, N = 1
-   fun {ReadFile IN_NAME N}
-      if {Reader.scan {New Reader.textfile init(name:IN_NAME)} N} == none then
-	 nil
-      else
-	 {Reader.scan {New Reader.textfile init(name:IN_NAME)} N}|{ReadFile IN_NAME N+1}
-      end
-   end
-
-
-%%% File is a string of lines. 
-%%% Returns : List of all the lines with only points (no ',' ';' '?' '!' ...)
+%%% File is a string. 
+%%% Returns : The String with only points instead of ',' ';' '?' '!' ...
    fun {MakePointFromFile File}
       %local
 	 %fun {MakePoint Line}
@@ -64,56 +50,8 @@ define
       else
 	 nil
       end
-	 %end
-      %in
-%	 case File of L1|L2 then
-%	    {MakePoint L1}|{MakePointFromFile L2}	 
-%	 else
-%	    nil
-%	 end
-      %end
    end
 
-%%% File : list of lines with only points (output of MakePointFromFile)
-%%% Returns : Split each lines by '.' and returns each phrases in a list
-   % example : ["salut iohef. duzgfzn eofn.foehiuh." "jizfioi. ziofhoifhnz. ofehiufh."] -> ["salut iohef" "duzgfzn eofn" "..."]
-   fun {FileToPhrase File}
- %     case File of H|T then
-%	 {Append {String.tokens File 46} {FileToPhrase T}}
- %     [] nil then
-%	 nil
-      %end
-      {String.tokens File 46}
-   end
-   
-%%% Split the phrase by Char (point = 46)
-   fun {GetWords Line Char}
-      {String.tokens Line Char}
-   end
-
-%%% Returns : Str without more than one space
-   fun {FilterEmpty Str}
-      case Str of H|T then
-	 if {StringToAtom H} == '' then
-	    {FilterEmpty T}
-	 else
-	    H|{FilterEmpty T}
-	 end
-      else
-	 nil
-      end
-   end
-   
-   
-%%% File : list of lines
-%%% Returns : the list of lines without capital letters
-   fun {FilterMaj File}
-      case File of H|T then
-	 {Map H Char.toLower}|{FilterMaj T}
-      else
-	 nil
-      end
-   end
    
 %%% Returns : the String without capital letters
    fun {ToLower String}
@@ -128,41 +66,42 @@ define
       end
    end
    
-   % Faire un ToLower !
-   % File : name of the file 
-   % Returns : a list of phrases from the file
+   % File : Name of the file 
+   % Returns : Splits the file by '.' and returns it as a list
    fun {CorrectInput File}
-      local F String in
+      local F Str in
 	 F={New Open.file init(name:File flags:[read])}
-	 {F read(list:String size:all)}
+	 {F read(list:Str size:all)}
 	 {F close}
-	 %{FilterMaj {FileToPhrase {MakePointFromFile {F read(list:{Browse} size:all)}}}}
-	 {FilterMaj {FileToPhrase {MakePointFromFile String}}}
+	 {String.tokens {MakePointFromFile {ToLower Str}} 46}
       end
    end
 
+   %%% Producer : Take the tweet files between Count and Val, apply CorrectInput to each one and merge them together in a list
+   fun {Prod Count Val}
+      if Count < Val+1 then
+	 %{Browse Count}
+	  {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}}|{Prod Count+1 Val}
+      else
+	 nil
+      end
+   end
+
+   
 %%%%%%%%%%%%%%%%%%%% Dictionary part %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-      %%% Returns : True if Dico contains the key Word
-   fun {Contains Dico Word}
-      local B in
-	 {Dictionary.member Dico Word B}
-	 B
-      end
-   end
 
-
-%%% WordsList : a list of wonrds.
-%%% Returns : Dic(word1:Dic(word2:1, word57:2...) word2:Dic(word3:2, word45:3...)...) 
+%%% WordsList : a list of words.
+%%% Returns : Dic(word1:Dic(word2:1, word57:2...) word2:Dic(word3:2, word45:3...)...) (example)
    proc {CreateRec WordsList Dico}
       case WordsList of H|T then
 	 case T of nil then
 	    skip
 	 else
-	    if {Contains Dico {StringToAtom H}} then
+	    if {Dictionary.member Dico {StringToAtom H}} then
 	       local ValueDico Freq in
 		  {Dictionary.get Dico {StringToAtom H} ValueDico}
-		  if {Contains ValueDico {StringToAtom T.1}} then % regarde si T.1 (le mot juste apres )H est deja associe a H
+		  if {Dictionary.member ValueDico {StringToAtom T.1}} then % regarde si T.1 (le mot juste apres )H est deja associe a H
 		     {Dictionary.get ValueDico {StringToAtom T.1} Freq}
 		     {Dictionary.put ValueDico {StringToAtom T.1} Freq+1} % On ajoute 1 a la freq
 		  else % si T n'a encore jamais été vu après H 
@@ -183,69 +122,15 @@ define
       end
    end
 
-   proc {CreateRec2 WordsList Dico} % attention, faut créer un dico avec les 1 uples et les 2 uples mais qu'on peut mtn mieux découper en threads ?
-      case WordsList of H|T then
-	 case T of nil then
-	    skip
-	 else
-	    case T.2.1 of nil then % si le 3 ème mot est nil alors ça sert à rien
-	       skip
-	    else
-	       if {Contains Dico {Append {Append {StringToAtom H} ' '} T}} then % faire une association de H et T (bon comme ça ?)
-		  local ValueDico Freq in
-		     {Dictionary.get Dico {Append {Append {StringToAtom H} ' '} T} ValueDico}
-		     if {Contains ValueDico {StringToAtom T.2.1}} then % regarde si T.2.1 (le mot juste apres T) est deja associe a H' 'T
-			{Dictionary.get ValueDico {StringToAtom T.2.1} Freq}
-			{Dictionary.put ValueDico {StringToAtom T.2.1} Freq+1} % On ajoute 1 a la freq
-		     else % si T.2.1 n'a encore jamais été vu après T 
-			{Dictionary.put ValueDico {StringToAtom T.2.1} 1}
-		     end
-		  end
-	       else
-		  local ValueDico in
-		     {Dictionary.new ValueDico}
-		     {Dictionary.put ValueDico {StringToAtom T.2.1} 1}
-		     {Dictionary.put Dico {Append {Append {StringToAtom H} ' '} T} ValueDico}
-		  end
-	       end
-	       {CreateRec2 T Dico}
-	    end
-	 end
-      [] nil then
-	 skip
-      end
-   end   
-   
-%%% Producer : Take the tweet files between Count and Val, apply CorrectInput and merge them together in a list
-   fun {Prod Count Val}
-      if Count < Val+1 then
-	 {Browse Count}
-	  {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}}|{Prod Count+1 Val}
-      else
-	 nil
-      end
-   end
 
-
-%%% ListFile : List of phrases
-%%% Returns : Dic(word1:Dic1(word2:2 word19:4...) word2:Dic2(word3:2 word78:5...) word3:Dic3(word4:3 word8:1...) ...) with all the words 
-   proc {DicoFromFile ListFile Dico Lock}
-      case ListFile of H|T then
-	 lock Lock then
-	    {CreateRec {GetWords H 32} Dico}
-	    {DicoFromFile T Dico Lock}
-	 end	 
-      else
-	 skip
-      end
-   end
-   
+%%% Files : List of files formated by CorrectInput
+%%% Returns : Dic(word1:Dic1(word2:2 word19:4...) word2:Dic2(word3:2 word78:5...) word3:Dic3(word4:3 word8:1...) ...) with all the words of all files 
    proc {DicoFromFiles Files Dico Lock}
       local
 	 proc {DicoFromFile ListFile Dico Lock}
 	    case ListFile of H|T then
 	       lock Lock then
-		  {CreateRec {GetWords H 32} Dico}
+		  {CreateRec {String.tokens H 32} Dico}
 		  {DicoFromFile T Dico Lock}
 	       end	 
 	    else
@@ -261,7 +146,7 @@ define
       end
    end
 
-   %%% Get keys in Dico and stock it in R
+   %%% Get Key in Dico and stock it in R, deals with the case where the key doesn't exist
    proc {DicoGetter Dico Key R}
       local B in
 	 {Dictionary.member Dico Key B}
@@ -276,19 +161,7 @@ define
 	 
 %%%%%%%%%% Get best word part %%%%%%%%%%%%%%%%
 
-
-%%% Returns the Word with the highest freq in Dic 
-   fun {GetHighestFreq Dic}
-      local Keys Items Index in
-	 Keys = {Dictionary.keys Dic}
-	 Items = {Dictionary.items Dic}
-	 Index = {Max Items 1 1 0}
-	 {Nth Keys Index}
-      end
-   end
-   
-   
-%%% Returns the index of the max of a list L (I = 1, Maxi = 0)
+   %%% Returns the index of the max of a list L (I = 1, Maxi = 0)
    fun {Max L I IMax Maxi}
       case L of H|T then
 	 if H > Maxi then
@@ -300,21 +173,30 @@ define
 	 IMax
       end
    end
+
+%%% Returns the Key with the highest Value in Dic 
+   fun {GetHighestFreq Dic}
+      local Keys Items Index in
+	 Keys = {Dictionary.keys Dic}
+	 Items = {Dictionary.items Dic}
+	 Index = {Max Items 1 1 0}
+	 {Nth Keys Index}
+      end
+   end
       
-   local Uple Dico Dico2 Phrases Tweet Point Points PointsFile I I2 X Count S TweetNames L1 L2 L3 L4 L5 L6 L7 L8 D1 D2 D3 D4 A B C D BestWord Lock T1 T2 T3 T4
+   local L1 L2 D1 A Lock T1 T2
          
 %%% GUI
     % Make the window description, all the parameters are explained here:
     % http://mozart2.org/mozart-v1/doc-1.4.0/mozart-stdlib/wp/qtk/html/node7.html)
    
     % Build the layout from the description
-      Text1 Text2 E R Description=td(
+      Text1 Text2 E Description=td(
 				  title: "Frequency count"
 				  entry(init:"type a word here"
 					handle:E
-					return:R
 					background:black
-					action:proc{$} {Show {String.toAtom {E get($)}}} {Text1 set(1:{String.toAtom {E get($)}})} end )
+					action:proc{$} {Text1 set(1:{String.toAtom {E get($)}})} end )
 				  lr(
 				     text(handle:Text1 width:28 height:5 background:white foreground:black wrap:word)
 				     button(text:"Match" action:Press)
@@ -323,19 +205,25 @@ define
 				  text(handle:Text2 width:28 height:5 background:black foreground:white glue:w wrap:word)
 				  action:proc{$}{Application.exit 0} end % quit app gracefully on window closing
 				     )
+%%% Executed when the button match is hit
       proc {Press}
 	 Inserted D5 in
 	 Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
-	 %{Dictionary.get D1 {StringToAtom {GetLastWordOfPhrase {String.tokens Inserted 32}}} D5}
 	 {DicoGetter D1 {StringToAtom  {ToLower {GetLastWordOfPhrase {String.tokens Inserted 32}}}} D5}
 	 if {IsDictionary D5} then
-	    {Text2 set(1:{GetHighestFreq D5})} % you can get/set text this way too
+	    {Text2 set(1:{GetHighestFreq D5})}
 	 else
 	    {Text2 set(1:D5)}
 	 end
       end
+      
+%%% Executed when the button restart is hit
+      proc {Restart}
+	 {Text1 set(1:"")}
+	 {Text2 set(1:"...")} % you can get/set text this way too
+      end
 
-%%% Returns : the last word of ListOfWord
+%%% Returns : the last word of ListOfWord, useful when the user writes a sentence
       fun {GetLastWordOfPhrase ListOfWord}
 	 case ListOfWord of H|T then
 	    if T == nil then {GetWithoutBackSlash H}
@@ -345,7 +233,7 @@ define
 	 end
       end
 
-%%% Removes '\n'
+%%% Removes occurences of '\n' in Word
       fun {GetWithoutBackSlash Word}
 	 case Word of H|T then
 	    if H == 10 then {GetWithoutBackSlash T}
@@ -357,130 +245,39 @@ define
 	 end
       end
       
-      
-      
-      proc {Restart}
-	 Inserted in
-	 Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
-	 {Text1 set(1:"")}
-	 {Text2 set(1:"...")} % you can get/set text this way too
-      end
    in
-      % define if we make 1 uple or 2 uple dictionary
-      Uple = 1
-
-      
-      X = 1
-      %I = {CorrectInput {VirtualString.toString 'tweets/part_'#X#'.txt'}}
-%%%% partie dico
-      %{Dictionary.new Dico}
-      %{DicoFromFile I Dico}
-      %Entries = {Dictionary.entries Dico}
-      %{Dictionary.get Dico 'and' Dico2}
-      %BestWord = {GetHighestFreq Dico2}
-      %{Browse BestWord}
-      
-      %{Browse {Dictionary.entries Dico2}}
-      {Dictionary.new D1}
-      %{Dictionary.new D2}
-      {Dictionary.new D3}
-      {Dictionary.new D4}
       
 %%% Threads for reading %%%
       {NewLock Lock}
-
-      
-      % quand on lit tout les fichiers avec 1 thread et un dico from files : 1:50
-      % moitié des fichiers avec 1 thread et un dico from files : 1:08
-      % quand on lit tout les fichiers avec 2 threads et 2 dico from files : 1:48 = 1:50
-      % quand on lit tout les fichiers avec 2 threads et 1 dico pour la moitié des fichiers : le 2ème thread avec dico à terminé à 1:20, celui sans dico (le premier) a terminé à 1:50
-      % tout les fichiers, 2 threads, dico pour chaque moitié : 1:20 pour le 2ème, 1:50 pour le premier
-      % tout les fichiers, 2 threads, pas de dico : 0:58 pour le 2ème, 1:28 ou 18 pour le premier
-      
-      % pour la moitié des fichiers, pas de dico (thread1) => 50 sec
-      % pour l'autre moitié des fichiers, pas de dico (thread 2) => 30 secondes
-      % la lecture à quand même pas mal l'air de s'additionner ... faut créer des locals ?
-
-
-
-      % 1 thread, tout lu pas de dico from files : 1:38
-
+      {Browse {StringToAtom "Starts reading"}}
       thread
-	 L1 = {Prod 1 52}
-	 {DicoFromFiles L1 D1 Lock}
-	 {Browse 1}
+	 L1 = {Prod 1 70}
+	 {Browse {StringToAtom "1 HAS ENDED READING"}}
 	 T1 = 1
       end
       thread
-	 L2 = {Prod 53 104}
-	 {DicoFromFiles L2 D1 Lock}
-	 {Browse 2}
+	 L2 = {Prod 71 208}
+	 {Browse {StringToAtom "2 HAS ENDED READING"}}
 	 T2 = 2
       end
+      
+%%% Threads for parsing %%%
+      {Dictionary.new D1}
       thread
-	 L3 = {Prod 105 156}
-	 {DicoFromFiles L3 D1 Lock}
-	 {Browse 3}
-	 T3 = 3
+	 {DicoFromFiles L1 D1 Lock}
+	 A = 1
       end
-      thread
-	 L4 = {Prod 157 208}
-	 {DicoFromFiles L4 D1 Lock}
-	 {Browse 4}
-	 T4 = 4
-      end
-     
-     % thread
-      {Browse {StringToAtom "Lecture commence"}}
+      {DicoFromFiles L2 D1 Lock}
       {Wait T1}
       {Wait T2}
-      {Wait T3}
-      {Wait T4}
-      {Browse {StringToAtom "Lecture finie"}}
-      %end
+      {Browse {StringToAtom "END OF READING"}}
+      {Wait A}
+      {Browse {StringToAtom "DICTIONARY DONE"}}
 
-%%% Threads for parsing %%%
-      %{NewLock Lock}
-     % thread
-%	 % {Browser1 L1}
-%	 {DicoFromFiles L1 D1 Lock}
-%	 {DicoFromFiles L2 D1 Lock}
-%	 {DicoFromFiles L3 D1 Lock}
-%	 {DicoFromFiles L4 D1 Lock}
-%	 A = 1
-	 %{Browse {Dictionary.entries D1}}
-	 %{Dictionary.get Dico 'and' Dico2}
-	 %{Browse {Dictionary.entries Dico2}}
- %     end
-      %thread
-%	 {DicoFromFiles L2 D1 Lock}
-%	 B = 1
-%	 {Browse 2}
- %     end
-     % thread
-%	 {DicoFromFiles L3 D1 Lock}
-%	 C = 1
-%	 {Browse 3}
- %     end
- %     thread
-%	 {DicoFromFiles L4 D1 Lock}
-%	 D = 1
-%	 {Browse 4}
-      %end
-      %{Wait A}
-      %{Wait B}
-  %    {Wait C}
-     % {Browse {StringToAtom "Dico fini"}}
-  %    {Wait D}
-      %{Browse {Dictionary.entries D1}}
-      %{Dictionary.get D1 'Africa' D2}
-      %{Browse {Dictionary.entries D2}}
-      %{Browse {GetHighestFreq D2}}
-
+%%% Launch GUI %%%
       W={QTk.build Description}
       {W show}
-   % {Text1 tk(insert 'end' {GetLine "tweets/part_1.txt" 1})}
-      {Text1 tk(insert 'end' {GetLine "tweets/part_1.txt" 1})}
+      {Text1 tk(insert 'end' "...")}
       {Text1 bind(event:"<Control-s>" action:Press)} % You can also bind events
    end   
 end
