@@ -1,5 +1,7 @@
 # Twit-Oz
 
+# groupe M
+
 Ce projet a pour but de créer un prédicteur de mots à partir de Tweets de Donald Trump.
 Il y'a 208 Tweets disponibles dans le dossier Tweets du projet.
 Chaque Chaque fichier est au format .txt et a une taille inférieure à 100 lignes.
