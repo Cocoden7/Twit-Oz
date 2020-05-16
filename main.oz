@@ -1,18 +1,14 @@
 functor
 import
    QTk at 'x-oz://system/wp/QTk.ozf'
-   %System
    Application
-   %OS
    Browser
-   %Reader
    Open
+   System
 define
 %%% Easier macros for imported functions
    Browse = Browser.browse
-   %Show = System.show
-   
-
+   Show = System.show
 
 %%% File is a string. 
 %%% Returns : The String with only points instead of ',' ';' '?' '!' ...
@@ -40,7 +36,6 @@ define
 	    46|{MakePointFromFile T}
 	 elseif H == 33 andthen T.1 == 33 andthen T.2.1 == 33 andthen T.2.2.1 == 33 andthen T.2.2.2.1 == 33 then
 	    46|{MakePointFromFile T}
-	    % ?
 	 elseif H == 63 orelse H == 34 orelse H == 35 orelse H == 40 orelse H == 41 orelse H == 42 orelse H == 58
 	    orelse H == 59 orelse H == 64 orelse H == 91 orelse H == 123 orelse H == 125 then
 	    46|{MakePointFromFile T}
@@ -80,7 +75,6 @@ define
    %%% Producer : Take the tweet files between Count and Val, apply CorrectInput to each one and merge them together in a list
    fun {Prod Count Val}
       if Count < Val+1 then
-	 %{Browse Count}
 	  {CorrectInput {VirtualString.toString 'tweets/part_'#Count#'.txt'}}|{Prod Count+1 Val}
       else
 	 nil
@@ -146,7 +140,7 @@ define
       end
    end
 
-   %%% Get Key in Dico and stock it in R, deals with the case where the key doesn't exist
+%%% Get Key in Dico and stock it in R, deals with the case where the key doesn't exist
    proc {DicoGetter Dico Key R}
       local B in
 	 {Dictionary.member Dico Key B}
@@ -161,7 +155,7 @@ define
 	 
 %%%%%%%%%% Get best word part %%%%%%%%%%%%%%%%
 
-   %%% Returns the index of the max of a list L (I = 1, Maxi = 0)
+%%% Returns the index of the max of a list L (I = 1, Maxi = 0)
    fun {Max L I IMax Maxi}
       case L of H|T then
 	 if H > Maxi then
@@ -192,8 +186,8 @@ define
    
     % Build the layout from the description
       Text1 Text2 E Description=td(
-				  title: "Frequency count"
-				  entry(init:"type a word here"
+				  title: "Twit-Oz"
+				  entry(init:"Type a sentence here."
 					handle:E
 					background:black
 					action:proc{$} {Text1 set(1:{String.toAtom {E get($)}})} end )
@@ -207,7 +201,7 @@ define
 				     )
 %%% Executed when the button match is hit
       proc {Press}
-	 Inserted D5 in
+	 Inserted D5 ByteS in
 	 Inserted = {Text1 getText(p(1 0) 'end' $)} % example using coordinates to get text
 	 {DicoGetter D1 {StringToAtom  {ToLower {GetLastWordOfPhrase {String.tokens Inserted 32}}}} D5}
 	 if {IsDictionary D5} then
@@ -219,6 +213,7 @@ define
       
 %%% Executed when the button restart is hit
       proc {Restart}
+	 {E set(1:"Type a sentence here.")}
 	 {Text1 set(1:"")}
 	 {Text2 set(1:"...")} % you can get/set text this way too
       end
@@ -249,15 +244,15 @@ define
       
 %%% Threads for reading %%%
       {NewLock Lock}
-      {Browse {StringToAtom "Starts reading"}}
+      {Show 'Starts reading and parsing tweets...'}
       thread
 	 L1 = {Prod 1 70}
-	 {Browse {StringToAtom "1 HAS ENDED READING"}}
+	 {Show 'Thread 1 has ended reading.'}
 	 T1 = 1
       end
       thread
 	 L2 = {Prod 71 208}
-	 {Browse {StringToAtom "2 HAS ENDED READING"}}
+	 {Show 'Thread 2 has ended reading.'}
 	 T2 = 2
       end
       
@@ -270,9 +265,9 @@ define
       {DicoFromFiles L2 D1 Lock}
       {Wait T1}
       {Wait T2}
-      {Browse {StringToAtom "END OF READING"}}
+      {Show 'End of reading.'}
       {Wait A}
-      {Browse {StringToAtom "DICTIONARY DONE"}}
+      {Show 'Dictionary done.'}
 
 %%% Launch GUI %%%
       W={QTk.build Description}
